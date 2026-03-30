@@ -1,10 +1,10 @@
-import 'package:auth_slmi/feature/logout/logout.dart';
+import 'package:auth_slmi/feature/auth/Login/views/login_view.dart';
+import 'package:auth_slmi/feature/auth/logout/logout.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/helper/app_nav.dart';
 import 'core/utiles/app_icons.dart';
 import 'core/widgts/custom_svg.dart';
-import 'feature/Login/views/login_view.dart';
 
 class SplachView extends StatefulWidget {
   const SplachView({super.key});
