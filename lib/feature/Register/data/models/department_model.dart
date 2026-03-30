@@ -12,20 +12,20 @@ class DepartmentsModel {
     if (json['data'] != null) {
       data = <Data>[];
       json['data'].forEach((v) {
-        data!.add(new Data.fromJson(v));
+        data!.add(Data.fromJson(v));
       });
     }
     timestamp = json['timestamp'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
-    data['message'] = this.message;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['success'] = success;
+    data['message'] = message;
     if (this.data != null) {
       data['data'] = this.data!.map((v) => v.toJson()).toList();
     }
-    data['timestamp'] = this.timestamp;
+    data['timestamp'] = timestamp;
     return data;
   }
 }
@@ -38,35 +38,37 @@ class Data {
   String? updatedAt;
   int? iV;
 
-  Data(
-      {this.sId,
-        this.departmentName,
-        this.universityId,
-        this.createdAt,
-        this.updatedAt,
-        this.iV});
+  Data({
+    this.sId,
+    this.departmentName,
+    this.universityId,
+    this.createdAt,
+    this.updatedAt,
+    this.iV,
+  });
 
   Data.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
     departmentName = json['departmentName'];
-    universityId = json['universityId'] != null
-        ? new UniversityId.fromJson(json['universityId'])
-        : null;
+    universityId =
+        json['universityId'] != null
+            ? UniversityId.fromJson(json['universityId'])
+            : null;
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     iV = json['__v'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['departmentName'] = this.departmentName;
-    if (this.universityId != null) {
-      data['universityId'] = this.universityId!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['departmentName'] = departmentName;
+    if (universityId != null) {
+      data['universityId'] = universityId!.toJson();
     }
-    data['createdAt'] = this.createdAt;
-    data['updatedAt'] = this.updatedAt;
-    data['__v'] = this.iV;
+    data['createdAt'] = createdAt;
+    data['updatedAt'] = updatedAt;
+    data['__v'] = iV;
     return data;
   }
 }
@@ -83,9 +85,9 @@ class UniversityId {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['universityName'] = this.universityName;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['universityName'] = universityName;
     return data;
   }
 }

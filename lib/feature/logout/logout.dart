@@ -1,8 +1,7 @@
 import 'package:auth_slmi/core/helper/app_nav.dart';
+import 'package:auth_slmi/feature/Login/views/login_view.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../Login/views/login_view.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});

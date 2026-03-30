@@ -1,5 +1,6 @@
 import 'package:auth_slmi/core/helper/app_nav.dart';
 import 'package:auth_slmi/feature/forget_pass/views/forget_pass_view.dart';
+import 'package:auth_slmi/feature/logout/logout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -11,7 +12,6 @@ import '../../../core/widgts/custom_buttom.dart';
 import '../../../core/widgts/custom_svg.dart';
 import '../../../core/widgts/custom_textformfiled.dart';
 import '../../Register/views/register_view.dart';
-import '../../home/views/home_view.dart';
 import '../manager/login_cubit.dart';
 import '../manager/login_states.dart';
 

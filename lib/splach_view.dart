@@ -1,4 +1,4 @@
-import 'package:auth_slmi/feature/home/views/home_view.dart';
+import 'package:auth_slmi/feature/logout/logout.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/helper/app_nav.dart';
