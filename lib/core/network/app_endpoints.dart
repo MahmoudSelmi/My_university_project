@@ -1,5 +1,5 @@
 class ApiEndpoints {
-  static const String baseUrl = "http://3.91.189.184:3000/api/v1";
+  static const String baseUrl = "http://54.226.14.225:3000/api/v1";
 
   static const String login = "$baseUrl/auth/login";
   static const String verifyEmail = "$baseUrl/auth/verify-email";
@@ -8,7 +8,9 @@ class ApiEndpoints {
   static const String register = "$baseUrl/auth/sign-up";
 
   static const String getUniversities = "$baseUrl/universities";
-
   static const String getDepartments = "$baseUrl/departments";
   static const String refreshToken = "$baseUrl/auth/refresh-token";
+
+  static const String myProject = "$baseUrl/projects/my-project";
+  static const String allProjects = "$baseUrl/projects/all";
 }

@@ -1,3 +1,4 @@
+import 'package:auth_slmi/core/BottomNavState/StudentMainLayout.dart';
 import 'package:auth_slmi/feature/auth/Login/views/login_view.dart';
 import 'package:auth_slmi/feature/auth/logout/logout.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +32,7 @@ class _SplachViewState extends State<SplachView> {
     if (accessToken != null && accessToken.isNotEmpty) {
       MyNavigator.goTo(
         context,
-        const HomeView(),
+        const StudentMainLayout(),
         type: NavigatorType.pushAndRemoveUntil,
       );
     } else {

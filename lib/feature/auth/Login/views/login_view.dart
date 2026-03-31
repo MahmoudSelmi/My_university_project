@@ -1,3 +1,4 @@
+import 'package:auth_slmi/core/BottomNavState/StudentMainLayout.dart';
 import 'package:auth_slmi/core/helper/app_nav.dart';
 import 'package:auth_slmi/core/helper/app_validator.dart';
 import 'package:auth_slmi/core/utiles/app_colors.dart';
@@ -7,7 +8,6 @@ import 'package:auth_slmi/core/widgts/custom_buttom.dart';
 import 'package:auth_slmi/core/widgts/custom_svg.dart';
 import 'package:auth_slmi/core/widgts/custom_textformfiled.dart';
 import 'package:auth_slmi/feature/auth/forget_pass/views/forget_pass_view.dart';
-import 'package:auth_slmi/feature/auth/logout/logout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -31,7 +31,7 @@ class LoginView extends StatelessWidget {
             if (state is LoginSuccess) {
               MyNavigator.goTo(
                 context,
-                HomeView(),
+                StudentMainLayout(),
                 type: NavigatorType.pushAndRemoveUntil,
               );
               AppToast.success(context, "Login Successfully");
