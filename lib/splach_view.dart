@@ -1,6 +1,5 @@
 import 'package:auth_slmi/core/BottomNavState/StudentMainLayout.dart';
 import 'package:auth_slmi/feature/auth/Login/views/login_view.dart';
-import 'package:auth_slmi/feature/auth/logout/logout.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/helper/app_nav.dart';

@@ -2,7 +2,6 @@ import 'package:auth_slmi/core/Models/project_model.dart';
 import 'package:auth_slmi/feature/Home/Views/EditProjectState.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'dart:ui';
 
 class ProjectDetailsScreen extends StatefulWidget {
   final ProjectModel project;

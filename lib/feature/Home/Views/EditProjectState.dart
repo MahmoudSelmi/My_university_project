@@ -1,6 +1,5 @@
 import 'package:auth_slmi/feature/Home/data/DioHelper.dart';
 import 'package:bloc/bloc.dart';
-import 'package:flutter/material.dart';
 import 'package:auth_slmi/core/Models/project_model.dart';
 
 // States
