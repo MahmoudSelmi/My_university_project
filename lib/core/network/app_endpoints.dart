@@ -1,5 +1,5 @@
 class ApiEndpoints {
-  static const String baseUrl = "http://54.163.210.57:3000/api/v1";
+  static const String baseUrl = "http://18.234.236.42:3000/api/v1";
 
   static const String login = "$baseUrl/auth/login";
   static const String verifyEmail = "$baseUrl/auth/verify-email";

@@ -6,7 +6,7 @@ class DioHelper {
   static init() {
     dio = Dio(
       BaseOptions(
-        baseUrl: 'http://54.163.210.57:3000/api/v1/',
+        baseUrl: 'http://18.234.236.42:3000/api/v1/',
         receiveDataWhenStatusError: true,
         connectTimeout: const Duration(seconds: 30),
         receiveTimeout: const Duration(seconds: 30),
@@ -18,6 +18,7 @@ class DioHelper {
     required String url,
     Map<String, dynamic>? query,
     String? token,
+    required Map<String, String> data,
   }) async {
     return await dio.get(
       url,
@@ -34,7 +35,7 @@ class DioHelper {
 
   static Future<Response> patchData({
     required String url,
-    required Map<String, dynamic> data,
+    required dynamic data,
     Map<String, dynamic>? query,
     String? token,
   }) async {
@@ -44,9 +45,9 @@ class DioHelper {
       data: data,
       options: Options(
         headers: {
-          'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Authorization': token ?? '',
+          if (data is! FormData) 'Content-Type': 'application/json',
         },
       ),
     );
@@ -66,6 +67,20 @@ class DioHelper {
           'Accept': 'application/json',
           'Authorization': token ?? '',
         },
+      ),
+    );
+  }
+
+  static Future<Response> postFileData({
+    required String url,
+    required FormData data,
+    String? token,
+  }) async {
+    return await dio.post(
+      url,
+      data: data,
+      options: Options(
+        headers: {'Accept': 'application/json', 'Authorization': token ?? ''},
       ),
     );
   }

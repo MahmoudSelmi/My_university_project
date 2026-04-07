@@ -35,6 +35,7 @@ class HomeCubit extends Cubit<HomeState> {
         url: 'projects/all',
 
         query: {'status': 'start'},
+        data: {},
       );
 
       if (value.data['success'] == true) {
@@ -50,8 +51,6 @@ class HomeCubit extends Cubit<HomeState> {
       }
     } catch (error) {
       debugPrint("API Error: ${error.toString()}");
-
-      // لو السيرفر وقع أو جاب Timeout، هنعرض داتا تجريبية عشان الـ UI ميفضلش واقف
 
       _loadMockData();
     }

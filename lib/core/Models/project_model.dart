@@ -19,6 +19,8 @@ class ProjectModel {
     this.doctorFullName,
     this.doctorImage,
     this.technologies,
+    String? universityName,
+    String? teamName,
   });
 
   factory ProjectModel.fromJson(Map<String, dynamic> json) {
