@@ -1,6 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:auth_slmi/core/helper/app_nav.dart';
+import 'package:auth_slmi/feature/auth/Login/views/login_view.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -11,6 +15,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   File? _profileImage;
+  String _selectedGender = 'Male';
   final TextEditingController _bioController = TextEditingController(
     text: "Flutter Developer",
   );
@@ -19,20 +24,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final LinearGradient meshGradient = const LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [
-      Color(0xFF6366F1), // Indigo
-      Color(0xFFA855F7), // Purple
-      Color(0xFFEC4899), // Pink
-    ],
+    colors: [Color(0xFF6366F1), Color(0xFFA855F7), Color(0xFFEC4899)],
   );
 
+  // ميثود تسجيل الخروج مع رسالة النجاح
+  Future<void> _logout(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('access_token');
+    await prefs.remove('refresh_token');
+
+    if (!mounted) return;
+
+    // إظهار الرسالة بالانجلش زي ما طلبت
+    _showModernSnackBar(context, "Logged out successfully!", true);
+
+    // تأخير بسيط عشان يلحق يشوف الرسالة
+    await Future.delayed(const Duration(milliseconds: 600));
+
+    MyNavigator.goTo(
+      context,
+      const LoginView(),
+      type: NavigatorType.pushAndRemoveUntil,
+    );
+  }
+
   Future<void> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      setState(() {
-        _profileImage = File(image.path);
-      });
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+      );
+      if (image != null) {
+        setState(() {
+          _profileImage = File(image.path);
+        });
+      }
+    } catch (e) {
+      _showModernSnackBar(context, "Gallery Error", false);
     }
   }
 
@@ -41,46 +70,178 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF0F2F5),
       appBar: _buildModernAppBar(),
-      body: ListView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-        children: [
-          _buildMainProfileCard(),
-          const SizedBox(height: 25),
-
-          _buildSectionTitle('Personal Details'),
-          const SizedBox(height: 15),
-
-          // بيانات ثابتة (جامعة وقسم)
-          _infoCard("University", "جامعة حلوان", Icons.school_rounded),
-          _infoCard("Department", "البرمجيات", Icons.account_tree_rounded),
-
-          const SizedBox(height: 10),
-          _buildSectionTitle('Edit Profile'),
-          const SizedBox(height: 15),
-
-          // كارت تعديل الـ Bio
-          _buildEditableCard(
-            controller: _bioController,
-            label: "Bio",
-            icon: Icons.edit_note_rounded,
-            hint: "Write your bio...",
+      body: AnimationLimiter(
+        child: ListView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
+          children: AnimationConfiguration.toStaggeredList(
+            duration: const Duration(milliseconds: 600),
+            childAnimationBuilder:
+                (widget) => SlideAnimation(
+                  horizontalOffset: 50.0,
+                  child: FadeInAnimation(child: widget),
+                ),
+            children: [
+              _buildMainProfileCard(),
+              const SizedBox(height: 25),
+              _buildSectionTitle('Personal Details'),
+              const SizedBox(height: 15),
+              _infoCard("University", "جامعة حلوان", Icons.school_rounded),
+              _infoCard("Department", "البرمجيات", Icons.account_tree_rounded),
+              const SizedBox(height: 10),
+              _buildSectionTitle('Edit Profile'),
+              const SizedBox(height: 15),
+              _buildEditableCard(
+                controller: _bioController,
+                label: "Bio",
+                icon: Icons.edit_note_rounded,
+                hint: "Write your bio...",
+              ),
+              const SizedBox(height: 15),
+              _buildGenderDropdown(),
+              const SizedBox(height: 15),
+              _buildEditableCard(
+                controller: _phoneController,
+                label: "Phone Number",
+                icon: Icons.phone_android_rounded,
+                hint: "Add Phone Number",
+                keyboardType: TextInputType.phone,
+              ),
+              const SizedBox(height: 35),
+              _buildSaveButton(),
+              const SizedBox(height: 15),
+              _buildLogoutButton(),
+            ],
           ),
+        ),
+      ),
+    );
+  }
 
-          const SizedBox(height: 15),
-
-          // كارت إضافة رقم الهاتف (خليناه في الآخر زي ما طلبت)
-          _buildEditableCard(
-            controller: _phoneController,
-            label: "Phone Number",
-            icon: Icons.phone_android_rounded,
-            hint: "Add Phone Number",
-            keyboardType: TextInputType.phone,
-          ),
-
-          const SizedBox(height: 35),
-          _buildSaveButton(),
+  Widget _buildGenderDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10),
         ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFA855F7).withOpacity(0.08),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.wc_rounded,
+              color: Color(0xFFA855F7),
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 15),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Gender",
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: _selectedGender,
+                    isDense: true,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1F2937),
+                      fontSize: 15,
+                    ),
+                    items:
+                        ['Male', 'Female']
+                            .map(
+                              (String value) => DropdownMenuItem(
+                                value: value,
+                                child: Text(value),
+                              ),
+                            )
+                            .toList(),
+                    onChanged: (val) => setState(() => _selectedGender = val!),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLogoutButton() {
+    return Container(
+      width: double.infinity,
+      height: 60,
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.red.shade100),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () => _logout(context),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.logout_rounded, color: Colors.red.shade400, size: 22),
+            const SizedBox(width: 10),
+            const Text(
+              "Logout",
+              style: TextStyle(
+                color: Color(0xFFEF4444),
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showModernSnackBar(BuildContext context, String msg, bool isSuccess) {
+    ScaffoldMessenger.of(context).removeCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              isSuccess ? Icons.check_circle : Icons.error,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Flexible(
+              child: Text(
+                msg,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor:
+            isSuccess ? Colors.green.shade600 : Colors.red.shade600,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        margin: const EdgeInsets.all(20),
       ),
     );
   }
@@ -113,7 +274,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         borderRadius: BorderRadius.circular(35),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6366F1).withOpacity(0.08),
+            color: const Color(0xFF6366F1).withOpacity(0.06),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -173,9 +334,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: Color(0xFF1F2937),
             ),
           ),
-          Text(
-            "ahmed@gmail.com",
-            style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                "Ma7moud.m.selmy1@gmail.com",
+                style: TextStyle(color: Colors.grey, fontSize: 13),
+              ),
+              const SizedBox(width: 5),
+              Icon(Icons.verified, color: Colors.blue.shade400, size: 14),
+            ],
           ),
         ],
       ),
@@ -193,15 +361,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(25),
         boxShadow: [
           BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10),
         ],
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: const Color(0xFF6366F1), size: 26),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF6366F1).withOpacity(0.08),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: const Color(0xFF6366F1), size: 22),
+          ),
           const SizedBox(width: 15),
           Expanded(
             child: Column(
@@ -209,7 +383,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 TextField(
                   controller: controller,
@@ -218,6 +396,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF1F2937),
+                    fontSize: 15,
                   ),
                   decoration: InputDecoration(
                     border: InputBorder.none,
@@ -240,9 +419,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildSaveButton() {
     return Container(
       width: double.infinity,
+      height: 60,
       decoration: BoxDecoration(
         gradient: meshGradient,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFFEC4899).withOpacity(0.3),
@@ -251,24 +431,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-      child: ElevatedButton(
-        onPressed: () {
-          // Logic for API Save
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          padding: const EdgeInsets.symmetric(vertical: 18),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
-        ),
-        child: const Text(
-          'Save Changes',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () => _showModernSnackBar(context, "Changes Saved!", true),
+          child: const Center(
+            child: Text(
+              'Save Changes',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
           ),
         ),
       ),
@@ -276,13 +452,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-        color: Color(0xFF1F2937),
-      ),
+    return Row(
+      children: [
+        Container(
+          width: 4,
+          height: 18,
+          decoration: BoxDecoration(
+            gradient: meshGradient,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1F2937),
+          ),
+        ),
+      ],
     );
   }
 
@@ -291,12 +480,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.white.withOpacity(0.7),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white),
       ),
       child: Row(
         children: [
-          Icon(icon, color: Colors.grey, size: 20),
+          Icon(icon, color: Colors.grey.shade400, size: 20),
           const SizedBox(width: 15),
           Text(title, style: const TextStyle(color: Colors.grey, fontSize: 14)),
           const Spacer(),

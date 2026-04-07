@@ -2,6 +2,7 @@ import 'package:auth_slmi/core/Models/project_model.dart';
 import 'package:auth_slmi/feature/Home/Views/EditProjectState.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 class ProjectDetailsScreen extends StatefulWidget {
   final ProjectModel project;
@@ -13,20 +14,16 @@ class ProjectDetailsScreen extends StatefulWidget {
 }
 
 class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
-  // الـ Controllers لمسك الداتا القابلة للتعديل
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController yearController = TextEditingController();
   final TextEditingController typeController = TextEditingController();
   final TextEditingController statusController = TextEditingController();
-
-  final GlobalKey<FormState> formKey =
-      GlobalKey<FormState>(); // لعمل Validate على الـ Form
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
-    // نهيئ الـ Controllers بالداتا الحالية للمشروع
     titleController.text = widget.project.projectTitle ?? '';
     descriptionController.text = widget.project.projectDescription ?? '';
     yearController.text = widget.project.projectYear ?? '';
@@ -36,7 +33,6 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
 
   @override
   void dispose() {
-    // مهم جداً نقفل الـ Controllers عشان Memory Leaks
     titleController.dispose();
     descriptionController.dispose();
     yearController.dispose();
@@ -48,11 +44,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
   final LinearGradient meshGradient = const LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [
-      Color(0xFF6366F1), // Indigo
-      Color(0xFFA855F7), // Purple
-      Color(0xFFEC4899), // Pink
-    ],
+    colors: [Color(0xFF6366F1), Color(0xFFA855F7), Color(0xFFEC4899)],
   );
 
   @override
@@ -62,19 +54,14 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
       child: BlocListener<EditProjectCubit, EditProjectState>(
         listener: (context, state) {
           if (state is EditProjectSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Project Updated Successfully!"),
-                backgroundColor: Colors.green,
-              ),
-            );
-            Navigator.pop(context); // نرجع للصفحة اللي قبلها بعد النجاح
+            _showModernSnackBar(context, "Project Updated Successfully!", true);
+            Navigator.pop(context);
           } else if (state is EditProjectError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
-              ),
+            // هنا بنعرض رسالة مختصرة عشان نمنع الـ Overflow اللي ظهر في الصورة
+            _showModernSnackBar(
+              context,
+              "Update Failed: Please check your data or connection",
+              false,
             );
           }
         },
@@ -83,68 +70,75 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
             return Scaffold(
               backgroundColor: const Color(0xFFF0F2F5),
               body: Form(
-                key: formKey, // نربط الـ Form بالـ Key
-                child: CustomScrollView(
-                  slivers: [
-                    _buildSliverAppBar(context),
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // حقول الإدخال القابلة للتعديل
-                            _buildEditableField(
-                              "Project Title",
-                              titleController,
-                              Icons.title_rounded,
-                            ),
-                            const SizedBox(height: 20),
-                            _buildEditableField(
-                              "Description",
-                              descriptionController,
-                              Icons.description_rounded,
-                              maxLines: 5,
-                            ),
-                            const SizedBox(height: 20),
-                            Row(
+                key: formKey,
+                child: AnimationLimiter(
+                  child: CustomScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    slivers: [
+                      _buildSliverAppBar(context),
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            children: AnimationConfiguration.toStaggeredList(
+                              duration: const Duration(milliseconds: 500),
+                              childAnimationBuilder:
+                                  (widget) => SlideAnimation(
+                                    horizontalOffset: 50.0,
+                                    child: FadeInAnimation(child: widget),
+                                  ),
                               children: [
-                                Expanded(
-                                  child: _buildEditableField(
-                                    "Year",
-                                    yearController,
-                                    Icons.calendar_today_rounded,
-                                    isNumbers: true,
-                                  ),
+                                _buildEditableField(
+                                  "Project Title",
+                                  titleController,
+                                  Icons.title_rounded,
                                 ),
-                                const SizedBox(width: 15),
-                                Expanded(
-                                  child: _buildEditableField(
-                                    "Type",
-                                    typeController,
-                                    Icons.merge_type_rounded,
-                                  ),
+                                const SizedBox(height: 20),
+                                _buildEditableField(
+                                  "Description",
+                                  descriptionController,
+                                  Icons.description_rounded,
+                                  maxLines: 4,
                                 ),
+                                const SizedBox(height: 20),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildEditableField(
+                                        "Year",
+                                        yearController,
+                                        Icons.calendar_today_rounded,
+                                        isNumbers: true,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 15),
+                                    Expanded(
+                                      child: _buildEditableField(
+                                        "Type",
+                                        typeController,
+                                        Icons.merge_type_rounded,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+                                _buildEditableField(
+                                  "Status",
+                                  statusController,
+                                  Icons.loop_rounded,
+                                ),
+                                const SizedBox(height: 30),
+                                _buildSectionTitle("Supervisor"),
+                                const SizedBox(height: 12),
+                                _buildSupervisorCard(),
+                                const SizedBox(height: 140),
                               ],
                             ),
-                            const SizedBox(height: 20),
-                            _buildEditableField(
-                              "Status",
-                              statusController,
-                              Icons.loop_rounded,
-                            ),
-                            const SizedBox(height: 30),
-
-                            // أجزاء غير قابلة للتعديل (Supervisor)
-                            _buildSectionTitle("Supervisor"),
-                            const SizedBox(height: 12),
-                            _buildSupervisorCard(),
-                            const SizedBox(height: 120),
-                          ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               floatingActionButtonLocation:
@@ -157,38 +151,73 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     );
   }
 
+  // الـ SnackBar المانعة للـ Overflow
+  void _showModernSnackBar(BuildContext context, String msg, bool isSuccess) {
+    ScaffoldMessenger.of(context).removeCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isSuccess
+                  ? Icons.check_circle_rounded
+                  : Icons.error_outline_rounded,
+              color: Colors.white,
+              size: 22,
+            ),
+            const SizedBox(width: 12),
+            Flexible(
+              // السطر ده هو اللي بيحل مشكلة الـ Overflow
+              child: Text(
+                msg,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: Colors.white,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        backgroundColor:
+            isSuccess ? Colors.green.shade600 : Colors.red.shade600,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        margin: const EdgeInsets.all(20),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   Widget _buildSliverAppBar(BuildContext context) {
     return SliverAppBar(
-      expandedHeight: 120,
-      floating: false,
+      expandedHeight: 140,
       pinned: true,
       backgroundColor: const Color(0xFF6366F1),
-      elevation: 0,
       leading: IconButton(
-        icon: const Icon(
-          Icons.close_rounded,
-          color: Colors.white,
-        ), // علامة X بدلاً من السهم
+        icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
         onPressed: () => Navigator.pop(context),
       ),
       flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: BoxDecoration(gradient: meshGradient),
-        ),
+        centerTitle: true,
         title: const Text(
-          "Edit Project", // تغيير العنوان
+          "Edit Project",
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
-        centerTitle: true,
+        background: Container(
+          decoration: BoxDecoration(gradient: meshGradient),
+        ),
       ),
     );
   }
 
-  // ويدجت موحدة لإنشاء حقول إدخال قابلة للتعديل
   Widget _buildEditableField(
     String label,
     TextEditingController controller,
@@ -199,34 +228,49 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle(label),
-        const SizedBox(height: 10),
+        Padding(
+          padding: const EdgeInsets.only(left: 8, bottom: 8),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade700,
+            ),
+          ),
+        ),
         Container(
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10),
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
             ],
           ),
           child: TextFormField(
             controller: controller,
             maxLines: maxLines,
             keyboardType: isNumbers ? TextInputType.number : TextInputType.text,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1F2937),
+            ),
             decoration: InputDecoration(
               prefixIcon: Icon(
                 icon,
-                color: const Color(0xFF6366F1).withOpacity(0.7),
+                color: const Color(0xFF6366F1).withOpacity(0.6),
               ),
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.all(18),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 15,
+              ),
             ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'This field cannot be empty';
-              }
-              return null;
-            },
+            validator: (value) => value!.isEmpty ? 'Field required' : null,
           ),
         ),
       ],
@@ -234,27 +278,40 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
   }
 
   Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-        color: Color(0xFF374151),
-      ),
+    return Row(
+      children: [
+        Container(
+          width: 4,
+          height: 18,
+          decoration: BoxDecoration(
+            gradient: meshGradient,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1F2937),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildSupervisorCard() {
     return Container(
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
       ),
       child: Row(
         children: [
           CircleAvatar(
-            radius: 25,
+            radius: 28,
             backgroundColor: const Color(0xFF6366F1).withOpacity(0.1),
             backgroundImage:
                 widget.project.doctorImage != null
@@ -262,14 +319,33 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                     : null,
             child:
                 widget.project.doctorImage == null
-                    ? const Icon(Icons.person, color: Color(0xFF6366F1))
+                    ? const Icon(
+                      Icons.person,
+                      color: Color(0xFF6366F1),
+                      size: 30,
+                    )
                     : null,
           ),
           const SizedBox(width: 15),
-          Text(
-            widget.project.doctorFullName ?? 'Doctor Name',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Supervisor",
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+                Text(
+                  widget.project.doctorFullName ?? 'Doctor Name',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
+          const Icon(Icons.verified_rounded, color: Colors.blue, size: 20),
         ],
       ),
     );
@@ -280,18 +356,17 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
-          // زرار حفظ التعديلات
           Expanded(
-            flex: 2,
             child: Container(
-              height: 55,
+              height: 60,
               decoration: BoxDecoration(
                 gradient: meshGradient,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF6366F1).withOpacity(0.3),
+                    color: const Color(0xFFEC4899).withOpacity(0.3),
                     blurRadius: 15,
+                    offset: const Offset(0, 8),
                   ),
                 ],
               ),
@@ -302,14 +377,9 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                       )
                       : ElevatedButton.icon(
                         onPressed: () {
-                          // نتحقق إن الداتا سليمة قبل ما نبعت للـ API
                           if (formKey.currentState!.validate()) {
-                            // ننادي على الـ Cubit عشان يبعت التعديلات
-                            BlocProvider.of<EditProjectCubit>(
-                              context,
-                            ).updateProject(
-                              projectId:
-                                  widget.project.projectId!, // مهم جداً الـ ID
+                            context.read<EditProjectCubit>().updateProject(
+                              projectId: widget.project.projectId!,
                               title: titleController.text,
                               description: descriptionController.text,
                               year: yearController.text,
@@ -319,14 +389,15 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                           }
                         },
                         icon: const Icon(
-                          Icons.save_rounded,
+                          Icons.check_circle_rounded,
                           color: Colors.white,
                         ),
                         label: const Text(
-                          "Save Changes",
+                          "Apply Changes",
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
+                            fontSize: 16,
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
@@ -337,29 +408,25 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
             ),
           ),
           const SizedBox(width: 15),
-          // زرار الحذف (كما هو)
           Container(
-            height: 55,
-            width: 55,
+            height: 60,
+            width: 60,
             decoration: BoxDecoration(
-              color: Colors.red.shade50,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: Colors.red.shade100),
             ),
             child: IconButton(
-              onPressed: () => _showDeleteDialog(context),
+              onPressed: () {},
               icon: Icon(
-                Icons.delete_sweep_rounded,
+                Icons.delete_outline_rounded,
                 color: Colors.red.shade400,
+                size: 28,
               ),
             ),
           ),
         ],
       ),
     );
-  }
-
-  void _showDeleteDialog(BuildContext context) {
-    // ... نفس كود الـ Dialog اللي عملناه سابقاً ...
   }
 }

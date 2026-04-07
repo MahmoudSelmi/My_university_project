@@ -3,6 +3,7 @@ import 'package:auth_slmi/feature/Home/Views/ProjectDetailsScreen.dart';
 import 'package:auth_slmi/feature/Home/manager/home_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,7 +19,6 @@ class _HomeScreenState extends State<HomeScreen> {
     HomeCubit.get(context).getHomeProjects();
   }
 
-  // التدرج اللوني الموحد اللي استخدمناه في الـ Nav
   final LinearGradient meshGradient = const LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
@@ -34,11 +34,30 @@ class _HomeScreenState extends State<HomeScreen> {
     return BlocBuilder<HomeCubit, HomeState>(
       builder: (context, state) {
         return Scaffold(
-          backgroundColor: const Color(0xFFF0F2F5), // لون خلفية هادي
+          backgroundColor: const Color(0xFFF0F2F5),
           appBar: _buildModernAppBar(),
-          body: _buildBody(state),
+          // استخدام Stack عشان نحط خلفية خفيفة للمحتوى
+          body: Stack(
+            children: [_buildBackgroundDecoration(), _buildBody(state)],
+          ),
         );
       },
+    );
+  }
+
+  // إضافة دوائر خفيفة في الخلفية لتعزيز شكل البراند
+  Widget _buildBackgroundDecoration() {
+    return Positioned(
+      top: -100,
+      right: -100,
+      child: Container(
+        width: 300,
+        height: 300,
+        decoration: BoxDecoration(
+          color: const Color(0xFF6366F1).withOpacity(0.03),
+          shape: BoxShape.circle,
+        ),
+      ),
     );
   }
 
@@ -46,46 +65,81 @@ class _HomeScreenState extends State<HomeScreen> {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      toolbarHeight: 80,
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Welcome Back 👋',
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+      toolbarHeight: 90,
+      title: AnimationConfiguration.synchronized(
+        duration: const Duration(milliseconds: 1000),
+        child: SlideAnimation(
+          verticalOffset: -20,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Welcome Back 👋',
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+              ),
+              ShaderMask(
+                shaderCallback: (bounds) => meshGradient.createShader(bounds),
+                child: const Text(
+                  'Explore Projects',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
           ),
-          ShaderMask(
-            shaderCallback: (bounds) => meshGradient.createShader(bounds),
-            child: const Text(
-              'Explore Projects',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+        ),
+      ),
+      actions: [_buildNotificationIcon()],
+    );
+  }
+
+  Widget _buildNotificationIcon() {
+    return Container(
+      margin: const EdgeInsets.only(right: 20, top: 20, bottom: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10),
+        ],
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          IconButton(
+            icon: const Icon(
+              Icons.notifications_none_rounded,
+              color: Color(0xFF6366F1),
+              size: 22,
+            ),
+            onPressed: () {},
+          ),
+          Positioned(
+            right: 10,
+            top: 10,
+            child: Container(
+              padding: const EdgeInsets.all(3),
+              decoration: const BoxDecoration(
+                color: Color(0xFFEC4899), // براند بينك
+                shape: BoxShape.circle,
+              ),
+              constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+              child: const Text(
+                '2',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 8,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
               ),
             ),
           ),
         ],
       ),
-      actions: [
-        Container(
-          margin: const EdgeInsets.only(right: 16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
-            ],
-          ),
-          child: IconButton(
-            icon: const Icon(
-              Icons.notifications_none_rounded,
-              color: Color(0xFF6366F1),
-            ),
-            onPressed: () {},
-          ),
-        ),
-      ],
     );
   }
 
@@ -95,21 +149,25 @@ class _HomeScreenState extends State<HomeScreen> {
         child: CircularProgressIndicator(color: Color(0xFFA855F7)),
       );
     } else if (state is HomeSuccess) {
-      if (state.projects.isEmpty) {
-        return const Center(child: Text('No Projects Found'));
-      }
-      return RefreshIndicator(
-        onRefresh: () async => HomeCubit.get(context).getHomeProjects(),
-        child: ListView.builder(
-          padding: const EdgeInsets.fromLTRB(
-            16,
-            8,
-            16,
-            100,
-          ), // padding زيادة عشان الـ Nav
-          itemCount: state.projects.length,
-          itemBuilder:
-              (context, index) => _buildProjectCard(state.projects[index]),
+      return AnimationLimiter(
+        child: RefreshIndicator(
+          onRefresh: () async => HomeCubit.get(context).getHomeProjects(),
+          child: ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
+            itemCount: state.projects.length,
+            itemBuilder: (context, index) {
+              return AnimationConfiguration.staggeredList(
+                position: index,
+                duration: const Duration(milliseconds: 600),
+                child: SlideAnimation(
+                  verticalOffset: 30.0,
+                  child: FadeInAnimation(
+                    child: _buildProjectCard(state.projects[index]),
+                  ),
+                ),
+              );
+            },
+          ),
         ),
       );
     } else if (state is HomeError) {
@@ -120,17 +178,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildProjectCard(ProjectModel project) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
+      margin: const EdgeInsets.only(bottom: 18),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: Colors.white, width: 2),
+        color: Colors.white.withOpacity(0.96),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6366F1).withOpacity(0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: const Color(0xFF6366F1).withOpacity(0.06),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -141,53 +199,53 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
+                  horizontal: 10,
+                  vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  gradient: meshGradient.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: const Color(0xFF6366F1).withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   project.projectType?.toUpperCase() ?? 'WEB',
                   style: const TextStyle(
                     color: Color(0xFF6366F1),
                     fontWeight: FontWeight.bold,
-                    fontSize: 10,
+                    fontSize: 9,
                   ),
                 ),
               ),
               const Spacer(),
               Text(
                 project.projectYear ?? '',
-                style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                style: TextStyle(color: Colors.grey.shade400, fontSize: 11),
               ),
             ],
           ),
-          const SizedBox(height: 15),
+          const SizedBox(height: 12),
           Text(
             project.projectTitle ?? 'No Title',
             style: const TextStyle(
-              fontSize: 20,
+              fontSize: 19,
               fontWeight: FontWeight.bold,
               color: Color(0xFF1F2937),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             project.projectDescription ?? 'No Description',
             maxLines: 2,
             style: TextStyle(
               color: Colors.grey.shade600,
-              fontSize: 14,
-              height: 1.5,
+              fontSize: 13,
+              height: 1.4,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
           Row(
             children: [
               CircleAvatar(
-                radius: 18,
+                radius: 16,
                 backgroundColor: const Color(0xFF6366F1).withOpacity(0.1),
                 backgroundImage:
                     project.doctorImage != null
@@ -195,59 +253,67 @@ class _HomeScreenState extends State<HomeScreen> {
                         : null,
                 child:
                     project.doctorImage == null
-                        ? const Icon(Icons.person, size: 20)
+                        ? const Icon(
+                          Icons.person,
+                          size: 18,
+                          color: Color(0xFF6366F1),
+                        )
                         : null,
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Text(
                 project.doctorFullName ?? 'Doctor',
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
-                  fontSize: 14,
+                  fontSize: 13,
                 ),
               ),
               const Spacer(),
-              Container(
-                decoration: BoxDecoration(
-                  gradient: meshGradient,
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFEC4899).withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => ProjectDetailsScreen(project: project),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                  child: const Text(
-                    'Details',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
+              _buildModernButton(project),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildModernButton(ProjectModel project) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: meshGradient,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFEC4899).withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProjectDetailsScreen(project: project),
+              ),
+            );
+          },
+          child: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+            child: Text(
+              'Details',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
