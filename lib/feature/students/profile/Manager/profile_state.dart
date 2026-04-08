@@ -1,5 +1,5 @@
-import 'package:auth_slmi/feature/profile/Models/profile_model.dart';
-import 'package:auth_slmi/feature/profile/data/profile_repository.dart';
+import 'package:auth_slmi/feature/students/profile/Models/profile_model.dart';
+import 'package:auth_slmi/feature/students/profile/data/profile_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 abstract class ProfileState {}

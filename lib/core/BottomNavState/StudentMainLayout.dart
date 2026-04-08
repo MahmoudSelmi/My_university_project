@@ -1,6 +1,6 @@
 import 'package:auth_slmi/core/BottomNavState/BottomNavCubit.dart';
-import 'package:auth_slmi/feature/Home/manager/home_cubit.dart';
-import 'package:auth_slmi/feature/projects/Manager/MyProjectCubit.dart';
+import 'package:auth_slmi/feature/students/Home/manager/home_cubit.dart';
+import 'package:auth_slmi/feature/students/projects/Manager/MyProjectCubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:ui';

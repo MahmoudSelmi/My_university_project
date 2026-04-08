@@ -1,5 +1,5 @@
-import 'package:auth_slmi/feature/Home/data/DioHelper.dart';
-import 'package:auth_slmi/feature/team/model/TeamModel.dart';
+import 'package:auth_slmi/feature/students/Home/data/DioHelper.dart';
+import 'package:auth_slmi/feature/students/team/model/TeamModel.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart'; // افترضنا إن عندك ملف DioHelper اللي عدلناه سوا
 

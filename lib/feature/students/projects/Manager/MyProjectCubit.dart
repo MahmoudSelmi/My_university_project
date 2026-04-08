@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:auth_slmi/core/Models/project_model.dart';
-import 'package:auth_slmi/feature/Home/data/DioHelper.dart';
-import 'package:auth_slmi/feature/projects/Manager/MyProjectState.dart';
+import 'package:auth_slmi/feature/students/Home/data/DioHelper.dart';
+import 'package:auth_slmi/feature/students/projects/Manager/MyProjectState.dart';
 import 'package:dio/dio.dart';
 // تأكد من مسار الـ CacheHelper الحقيقي عندك
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:auth_slmi/feature/projects/Manager/MyProjectCubit.dart';
-import 'package:auth_slmi/feature/projects/Manager/MyProjectState.dart';
+import 'package:auth_slmi/feature/students/projects/Manager/MyProjectCubit.dart';
+import 'package:auth_slmi/feature/students/projects/Manager/MyProjectState.dart';
 import 'package:auth_slmi/core/Models/project_model.dart';
 
 class MyProjectScreen extends StatelessWidget {

@@ -1,7 +1,7 @@
 import 'package:auth_slmi/core/BottomNavState/BottomNavCubit.dart';
-import 'package:auth_slmi/feature/Home/data/DioHelper.dart';
-import 'package:auth_slmi/feature/Home/manager/home_cubit.dart';
-import 'package:auth_slmi/feature/projects/Manager/MyProjectState.dart';
+import 'package:auth_slmi/feature/students/Home/data/DioHelper.dart';
+import 'package:auth_slmi/feature/students/Home/manager/home_cubit.dart';
+import 'package:auth_slmi/feature/students/projects/Manager/MyProjectState.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,7 +10,7 @@ import 'splach_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await CacheHelper.init(); // لازم await هنا
+  await CacheHelper.init();
   await DioHelper.init();
   runApp(const MyApp());
 }

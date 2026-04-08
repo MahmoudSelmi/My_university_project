@@ -1,7 +1,7 @@
 import 'package:auth_slmi/core/Models/project_model.dart';
-import 'package:auth_slmi/feature/Home/Views/ProjectDetailsScreen.dart';
-import 'package:auth_slmi/feature/previous_projects_screen/Manager/all_projects_cubit.dart';
-import 'package:auth_slmi/feature/previous_projects_screen/Models/previous_project_model.dart';
+import 'package:auth_slmi/feature/students/Home/Views/ProjectDetailsScreen.dart';
+import 'package:auth_slmi/feature/students/previous_projects_screen/Manager/all_projects_cubit.dart';
+import 'package:auth_slmi/feature/students/previous_projects_screen/Models/previous_project_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';

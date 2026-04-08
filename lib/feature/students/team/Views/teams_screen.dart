@@ -1,5 +1,5 @@
-import 'package:auth_slmi/feature/team/manager/TeamsCubit.dart';
-import 'package:auth_slmi/feature/team/model/TeamModel.dart';
+import 'package:auth_slmi/feature/students/team/manager/TeamsCubit.dart';
+import 'package:auth_slmi/feature/students/team/model/TeamModel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';

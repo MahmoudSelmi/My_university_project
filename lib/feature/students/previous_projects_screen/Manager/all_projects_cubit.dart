@@ -1,4 +1,4 @@
-import 'package:auth_slmi/feature/Home/data/DioHelper.dart';
+import 'package:auth_slmi/feature/students/Home/data/DioHelper.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../Models/previous_project_model.dart';
 

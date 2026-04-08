@@ -1,4 +1,4 @@
-import 'package:auth_slmi/feature/previous_projects_screen/Models/previous_project_model.dart';
+import 'package:auth_slmi/feature/students/previous_projects_screen/Models/previous_project_model.dart';
 
 abstract class AllProjectsState {}
 
