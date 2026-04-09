@@ -6,11 +6,8 @@ class ProjectDetailsScreen extends StatelessWidget {
 
   const ProjectDetailsScreen({super.key, required this.project});
 
-  // وضع الألوان في متغيرات ثابتة أو const يحسن الأداء
   static const Color _primaryColor = Color(0xFF6366F1);
-  static const Color _bgColor = Color(0xFFF0F2F5);
 
-  // استخدام الـ static const للـ Gradients بيمنع إعادة إنشائها في الـ Memory
   static const LinearGradient _meshGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
@@ -19,25 +16,29 @@ class ProjectDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // شيلنا الـ Theme ويدجت اللي كانت بتجبر الشاشة على اللايت مود
     return Scaffold(
-      backgroundColor: _bgColor,
-      // AppBar بسيط وخفيف
+      // الخلفية بتسمع من الثيم (هتبقى غامقة لو فعلت الدارك مود)
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        scrolledUnderElevation: 0, // يمنع تغير اللون عند السكرول لتحسين الأداء
+        scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: _primaryColor),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           "Project Details",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            // لون النص بيتغير تلقائياً حسب المود
+            color: Theme.of(context).textTheme.bodyLarge?.color,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        // استخدام BouncingScrollPhysics يمنع الـ Glow effect اللي بياخد موارد على الأندرويد
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         child: Column(
@@ -58,9 +59,6 @@ class ProjectDetailsScreen extends StatelessWidget {
     );
   }
 }
-
-// فصل الـ Widgets في كلاسات منفصلة const بيخلي Flutter يعمل "Repaint Boundary"
-// ويمنع إعادة بناء الـ Widgets اللي مغيرتش داتا.
 
 class _HeaderCard extends StatelessWidget {
   final ProjectItem project;
@@ -88,7 +86,7 @@ class _HeaderCard extends StatelessWidget {
           Text(
             project.projectTitle?.toUpperCase() ?? "PROJECT",
             style: const TextStyle(
-              color: Colors.white,
+              color: Colors.white, // أبيض دائماً فوق الجريدينت
               fontSize: 22,
               fontWeight: FontWeight.bold,
             ),
@@ -114,7 +112,12 @@ class _SectionTitle extends StatelessWidget {
       padding: const EdgeInsets.only(left: 5, bottom: 10),
       child: Text(
         title,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          // العنوان يتبع الثيم
+          color: Theme.of(context).textTheme.bodyLarge?.color,
+        ),
       ),
     );
   }
@@ -130,9 +133,9 @@ class _ContentCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        // لون الكارت يتغير (أبيض في اللايت، كحلي/أسود في الدارك)
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
-        // تقليل الـ BoxShadow أو إلغاؤه في الـ Lists بيحسن الـ FPS
         boxShadow: [
           BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 5),
         ],
@@ -140,9 +143,10 @@ class _ContentCard extends StatelessWidget {
       child: Text(
         text,
         style: TextStyle(
-          color: Colors.grey.shade700,
+          // النص يتبع الثيم ويكون مريح للعين
+          color: Theme.of(context).textTheme.bodyMedium?.color,
           fontSize: 15,
-          height: 1.5, // تقليل الـ Height شوية بيخلي الريندر أسرع
+          height: 1.5,
         ),
       ),
     );
@@ -156,9 +160,8 @@ class _SupervisorTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
       ),
       child: ListTile(
@@ -166,8 +169,22 @@ class _SupervisorTile extends StatelessWidget {
           backgroundColor: ProjectDetailsScreen._primaryColor,
           child: Icon(Icons.person, color: Colors.white),
         ),
-        title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: const Text("Project Supervisor"),
+        title: Text(
+          name,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            // اسم الدكتور يتبع لون النصوص الرئيسي للثيم لضمان الوضوح التام
+            color: Theme.of(context).textTheme.bodyLarge?.color,
+          ),
+        ),
+        subtitle: Text(
+          "Project Supervisor",
+          style: TextStyle(
+            color: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.color?.withOpacity(0.1),
+          ),
+        ),
       ),
     );
   }

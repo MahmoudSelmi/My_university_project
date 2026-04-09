@@ -1,10 +1,11 @@
-import 'dart:io';
+import 'package:auth_slmi/feature/core/helper/app_nav.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:auth_slmi/core/helper/app_nav.dart';
 import 'package:auth_slmi/feature/auth/Login/views/login_view.dart';
+import 'package:auth_slmi/feature/auth/rest_pass/views/rest_pass_view.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -14,7 +15,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  File? _profileImage;
   String _selectedGender = 'Male';
   final TextEditingController _bioController = TextEditingController(
     text: "Flutter Developer",
@@ -27,20 +27,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     colors: [Color(0xFF6366F1), Color(0xFFA855F7), Color(0xFFEC4899)],
   );
 
-  // ميثود تسجيل الخروج مع رسالة النجاح
   Future<void> _logout(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('access_token');
     await prefs.remove('refresh_token');
-
     if (!mounted) return;
-
-    // إظهار الرسالة بالانجلش زي ما طلبت
     _showModernSnackBar(context, "Logged out successfully!", true);
-
-    // تأخير بسيط عشان يلحق يشوف الرسالة
     await Future.delayed(const Duration(milliseconds: 600));
-
     MyNavigator.goTo(
       context,
       const LoginView(),
@@ -48,27 +41,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Future<void> _pickImage() async {
-    try {
-      final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 80,
-      );
-      if (image != null) {
-        setState(() {
-          _profileImage = File(image.path);
-        });
-      }
-    } catch (e) {
-      _showModernSnackBar(context, "Gallery Error", false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F2F5),
       appBar: _buildModernAppBar(),
       body: AnimationLimiter(
         child: ListView(
@@ -78,18 +53,62 @@ class _ProfileScreenState extends State<ProfileScreen> {
             duration: const Duration(milliseconds: 600),
             childAnimationBuilder:
                 (widget) => SlideAnimation(
-                  horizontalOffset: 50.0,
+                  verticalOffset: 50.0,
                   child: FadeInAnimation(child: widget),
                 ),
             children: [
               _buildMainProfileCard(),
               const SizedBox(height: 25),
-              _buildSectionTitle('Personal Details'),
+
+              _buildSectionTitle('Academic Information'),
               const SizedBox(height: 15),
-              _infoCard("University", "جامعة حلوان", Icons.school_rounded),
-              _infoCard("Department", "البرمجيات", Icons.account_tree_rounded),
-              const SizedBox(height: 10),
-              _buildSectionTitle('Edit Profile'),
+              _infoCard(
+                "University",
+                "Helwan University",
+                Icons.school_rounded,
+              ),
+              _infoCard(
+                "Department",
+                "Software Engineering",
+                Icons.account_tree_rounded,
+              ),
+              const SizedBox(height: 25),
+
+              _buildSectionTitle('Settings & Security'),
+              const SizedBox(height: 15),
+              // زرار الدارك مود
+              BlocBuilder<ThemeCubit, ThemeMode>(
+                builder: (context, themeMode) {
+                  bool isDark = themeMode == ThemeMode.dark;
+                  return _buildThemeOption(
+                    title: "Dark Mode",
+                    subtitle:
+                        isDark ? "Switch to light mode" : "Enable dark theme",
+                    icon:
+                        isDark
+                            ? Icons.dark_mode_rounded
+                            : Icons.light_mode_rounded,
+                    value: isDark,
+                    onChanged:
+                        (val) => context.read<ThemeCubit>().toggleTheme(val),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildSecurityOption(
+                title: "Change Password",
+                subtitle: "Update your security credentials",
+                icon: Icons.lock_outline_rounded,
+                onTap:
+                    () => MyNavigator.goTo(
+                      context,
+                      const ResetPasswordView(),
+                      type: NavigatorType.push,
+                    ),
+              ),
+              const SizedBox(height: 25),
+
+              _buildSectionTitle('Edit Profile Details'),
               const SizedBox(height: 15),
               _buildEditableCard(
                 controller: _bioController,
@@ -107,7 +126,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 hint: "Add Phone Number",
                 keyboardType: TextInputType.phone,
               ),
-              const SizedBox(height: 35),
+
+              const SizedBox(height: 40),
               _buildSaveButton(),
               const SizedBox(height: 15),
               _buildLogoutButton(),
@@ -118,11 +138,268 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Widget _buildThemeOption({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required bool value,
+    required Function(bool) onChanged,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: const Color(0xFF6366F1).withOpacity(0.08),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: const Color(0xFF6366F1), size: 24),
+        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+        ),
+        trailing: Switch.adaptive(
+          value: value,
+          activeColor: const Color(0xFF6366F1),
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSecurityOption({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: const Color(0xFF6366F1).withOpacity(0.08),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: const Color(0xFF6366F1), size: 24),
+        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+        ),
+        trailing: const Icon(
+          Icons.arrow_forward_ios_rounded,
+          size: 14,
+          color: Colors.grey,
+        ),
+        onTap: onTap,
+      ),
+    );
+  }
+
+  void _showModernSnackBar(BuildContext context, String msg, bool isSuccess) {
+    ScaffoldMessenger.of(context).removeCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              isSuccess ? Icons.check_circle : Icons.error,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Flexible(
+              child: Text(
+                msg,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor:
+            isSuccess ? Colors.green.shade600 : Colors.red.shade600,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        margin: const EdgeInsets.all(20),
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildModernAppBar() {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      centerTitle: true,
+      title: ShaderMask(
+        shaderCallback: (bounds) => meshGradient.createShader(bounds),
+        child: const Text(
+          'Profile',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMainProfileCard() {
+    return Container(
+      padding: const EdgeInsets.all(25),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(35),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF6366F1).withOpacity(0.06),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Stack(
+            alignment: Alignment.bottomRight,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  gradient: meshGradient,
+                  shape: BoxShape.circle,
+                ),
+                child: const CircleAvatar(
+                  radius: 55,
+                  backgroundColor: Colors.white,
+                  child: Icon(Icons.person, size: 55, color: Color(0xFF6366F1)),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF6366F1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.camera_alt,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Text(
+            "Mahmoud Selmi",
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                "Ma7moud.m.selmy1@gmail.com",
+                style: TextStyle(color: Colors.grey, fontSize: 13),
+              ),
+              const SizedBox(width: 5),
+              Icon(Icons.verified, color: Colors.blue.shade400, size: 14),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEditableCard({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    required String hint,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF6366F1).withOpacity(0.08),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: const Color(0xFF6366F1), size: 22),
+          ),
+          const SizedBox(width: 15),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextField(
+                  controller: controller,
+                  keyboardType: keyboardType,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                    fontSize: 15,
+                  ),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                    hintText: hint,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildGenderDropdown() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(25),
         boxShadow: [
           BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10),
@@ -159,9 +436,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: DropdownButton<String>(
                     value: _selectedGender,
                     isDense: true,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1F2937),
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                       fontSize: 15,
                     ),
                     items:
@@ -174,238 +451,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             )
                             .toList(),
                     onChanged: (val) => setState(() => _selectedGender = val!),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLogoutButton() {
-    return Container(
-      width: double.infinity,
-      height: 60,
-      decoration: BoxDecoration(
-        color: Colors.red.shade50,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.red.shade100),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: () => _logout(context),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.logout_rounded, color: Colors.red.shade400, size: 22),
-            const SizedBox(width: 10),
-            const Text(
-              "Logout",
-              style: TextStyle(
-                color: Color(0xFFEF4444),
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showModernSnackBar(BuildContext context, String msg, bool isSuccess) {
-    ScaffoldMessenger.of(context).removeCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(
-              isSuccess ? Icons.check_circle : Icons.error,
-              color: Colors.white,
-              size: 20,
-            ),
-            const SizedBox(width: 10),
-            Flexible(
-              child: Text(
-                msg,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor:
-            isSuccess ? Colors.green.shade600 : Colors.red.shade600,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        margin: const EdgeInsets.all(20),
-      ),
-    );
-  }
-
-  PreferredSizeWidget _buildModernAppBar() {
-    return AppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      toolbarHeight: 70,
-      centerTitle: true,
-      title: ShaderMask(
-        shaderCallback: (bounds) => meshGradient.createShader(bounds),
-        child: const Text(
-          'Profile',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMainProfileCard() {
-    return Container(
-      padding: const EdgeInsets.all(25),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(35),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF6366F1).withOpacity(0.06),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Stack(
-            alignment: Alignment.bottomRight,
-            children: [
-              GestureDetector(
-                onTap: _pickImage,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    gradient: meshGradient,
-                    shape: BoxShape.circle,
-                  ),
-                  child: CircleAvatar(
-                    radius: 55,
-                    backgroundColor: Colors.white,
-                    backgroundImage:
-                        _profileImage != null
-                            ? FileImage(_profileImage!)
-                            : null,
-                    child:
-                        _profileImage == null
-                            ? const Icon(
-                              Icons.person,
-                              size: 55,
-                              color: Color(0xFF6366F1),
-                            )
-                            : null,
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF6366F1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.camera_alt,
-                  color: Colors.white,
-                  size: 18,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            "Mahmoud Selmi",
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1F2937),
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                "Ma7moud.m.selmy1@gmail.com",
-                style: TextStyle(color: Colors.grey, fontSize: 13),
-              ),
-              const SizedBox(width: 5),
-              Icon(Icons.verified, color: Colors.blue.shade400, size: 14),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEditableCard({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    required String hint,
-    TextInputType keyboardType = TextInputType.text,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF6366F1).withOpacity(0.08),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: const Color(0xFF6366F1), size: 22),
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                TextField(
-                  controller: controller,
-                  keyboardType: keyboardType,
-                  maxLines: label == "Bio" ? null : 1,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1F2937),
-                    fontSize: 15,
-                  ),
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
-                    hintText: hint,
-                    hintStyle: TextStyle(
-                      color: Colors.grey.shade400,
-                      fontWeight: FontWeight.normal,
-                    ),
                   ),
                 ),
               ],
@@ -451,6 +496,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Widget _buildLogoutButton() {
+    return Container(
+      width: double.infinity,
+      height: 60,
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.red.shade100),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () => _logout(context),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.logout_rounded, color: Colors.red.shade400, size: 22),
+            const SizedBox(width: 10),
+            const Text(
+              "Logout",
+              style: TextStyle(
+                color: Color(0xFFEF4444),
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildSectionTitle(String title) {
     return Row(
       children: [
@@ -465,10 +541,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(width: 10),
         Text(
           title,
-          style: const TextStyle(
-            fontSize: 18,
+          style: TextStyle(
+            fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1F2937),
+            color: Theme.of(context).textTheme.bodyLarge?.color,
           ),
         ),
       ],
@@ -480,9 +556,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.7),
+        color: Theme.of(context).cardColor.withOpacity(0.8),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.white),
+        border: Border.all(
+          color: Theme.of(context).dividerColor.withOpacity(0.1),
+        ),
       ),
       child: Row(
         children: [
@@ -492,13 +570,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const Spacer(),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1F2937),
+              color: Theme.of(context).textTheme.bodyLarge?.color,
             ),
           ),
         ],
       ),
     );
+  }
+}
+
+class ThemeCubit extends Cubit<ThemeMode> {
+  ThemeCubit() : super(ThemeMode.light) {
+    _loadTheme();
+  }
+
+  void toggleTheme(bool isDark) {
+    final mode = isDark ? ThemeMode.dark : ThemeMode.light;
+    CacheHelper.saveData(key: 'isDark', value: isDark);
+    emit(mode);
+  }
+
+  void _loadTheme() {
+    // بيقرأ الحالة المسيفة من الـ Cache عشان ميرجعش أبيض لوحده
+    bool isDark = CacheHelper.getData(key: 'isDark') ?? false;
+    emit(isDark ? ThemeMode.dark : ThemeMode.light);
   }
 }

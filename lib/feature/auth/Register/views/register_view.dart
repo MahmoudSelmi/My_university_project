@@ -1,15 +1,14 @@
 import 'package:auth_slmi/core/helper/app_nav.dart';
 import 'package:auth_slmi/core/helper/app_validator.dart';
 import 'package:auth_slmi/core/utiles/app_colors.dart';
-import 'package:auth_slmi/core/utiles/app_icons.dart';
 import 'package:auth_slmi/core/widgts/app_snkparr.dart';
 import 'package:auth_slmi/core/widgts/custom_buttom.dart';
 import 'package:auth_slmi/core/widgts/custom_dropdown.dart';
-import 'package:auth_slmi/core/widgts/custom_svg.dart';
 import 'package:auth_slmi/core/widgts/custom_textformfiled.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 import '../../Login/views/login_view.dart';
 import '../../verfiy/views/verfiy_view.dart';
@@ -22,6 +21,13 @@ import '../manager/Universitiecubit/universities_states.dart';
 
 class RegisterView extends StatelessWidget {
   const RegisterView({super.key});
+
+  final LinearGradient brandGradient = const LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF6366F1), Color(0xFFA855F7), Color(0xFFEC4899)],
+  );
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
@@ -31,11 +37,10 @@ class RegisterView extends StatelessWidget {
         BlocProvider(create: (_) => RegisterCubit()),
       ],
       child: Scaffold(
-        backgroundColor: AppColors.white,
+        backgroundColor: const Color(0xFFF8FAFC),
         body: BlocConsumer<RegisterCubit, RegisterState>(
           listener: (context, state) {
             final cubit = RegisterCubit.get(context);
-
             if (state is RegisterSuccess) {
               final email = cubit.emailController.text;
               AppToast.success(context, state.response.message);
@@ -47,24 +52,57 @@ class RegisterView extends StatelessWidget {
               );
             } else if (state is RegisterError) {
               AppToast.error(context, state.error);
-              cubit.clearControllers();
             }
           },
           builder: (context, state) {
             final cubit = RegisterCubit.get(context);
             return Form(
               key: cubit.formKey,
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 32.w),
-                child: SingleChildScrollView(
-                  child: Column(
+              child: AnimationLimiter(
+                child: ListView(
+                  padding: EdgeInsets.symmetric(horizontal: 24.w),
+                  physics: const BouncingScrollPhysics(),
+                  children: AnimationConfiguration.toStaggeredList(
+                    duration: const Duration(milliseconds: 500),
+                    childAnimationBuilder:
+                        (widget) => SlideAnimation(
+                          verticalOffset: 30.0,
+                          child: FadeInAnimation(child: widget),
+                        ),
                     children: [
-                      CustomSvg(
-                        path: AppIcons.logo,
-                        width: 400.w,
-                        height: 250.h,
+                      SizedBox(height: 80.h),
+
+                      // كلمة Khotwa الاحترافية
+                      Center(
+                        child: ShaderMask(
+                          shaderCallback:
+                              (bounds) => brandGradient.createShader(bounds),
+                          child: Text(
+                            'Khotwa',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 40.sp,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -1.0,
+                            ),
+                          ),
+                        ),
                       ),
 
+                      SizedBox(height: 8.h),
+                      Center(
+                        child: Text(
+                          "Create a new student account",
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 13.sp,
+                          ),
+                        ),
+                      ),
+
+                      SizedBox(height: 40.h),
+
+                      // حقل الاسم بالكامل
                       CustomTextformfaild(
                         controller: cubit.nameController,
                         obscureText: false,
@@ -72,60 +110,73 @@ class RegisterView extends StatelessWidget {
                         hintText: "Full Name",
                         validator: AppValidator.requiredValidator,
                         prefixIcon: Icon(
-                          Icons.person,
+                          Icons.person_outline_rounded,
                           color: AppColors.primary,
+                          size: 20.sp,
                         ),
                       ),
 
                       SizedBox(height: 16.h),
 
+                      // حقل كود الطالب
                       CustomTextformfaild(
-                        prefixIcon: Icon(
-                          Icons.person,
-                          color: AppColors.primary,
-                        ),
                         controller: cubit.universityCodeController,
                         obscureText: false,
                         keyboardType: TextInputType.number,
                         hintText: "Student Code",
                         validator: AppValidator.studentCodeValidator,
+                        prefixIcon: Icon(
+                          Icons.badge_outlined,
+                          color: AppColors.primary,
+                          size: 20.sp,
+                        ),
                       ),
 
                       SizedBox(height: 16.h),
 
+                      // حقل البريد الإلكتروني
                       CustomTextformfaild(
-                        prefixIcon: Icon(Icons.email, color: AppColors.primary),
-
                         controller: cubit.emailController,
                         obscureText: false,
                         keyboardType: TextInputType.emailAddress,
-                        hintText: "Email",
+                        hintText: "Email Address",
                         validator: AppValidator.emailValidator,
+                        prefixIcon: Icon(
+                          Icons.alternate_email_rounded,
+                          color: AppColors.primary,
+                          size: 20.sp,
+                        ),
                       ),
 
                       SizedBox(height: 16.h),
 
+                      // حقل كلمة السر
                       CustomTextformfaild(
-                        prefixIcon: Icon(Icons.lock, color: AppColors.primary),
                         controller: cubit.passwordController,
                         obscureText: cubit.isPassword,
                         keyboardType: TextInputType.visiblePassword,
                         hintText: "Password",
                         validator: AppValidator.passwordValidator,
+                        prefixIcon: Icon(
+                          Icons.lock_outline_rounded,
+                          color: AppColors.primary,
+                          size: 20.sp,
+                        ),
                         suffixIcon: IconButton(
                           onPressed: cubit.changePasswordVisibility,
                           icon: Icon(
                             cubit.isPassword
-                                ? Icons.visibility
-                                : Icons.visibility_off,
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            size: 20.sp,
                           ),
                         ),
                       ),
 
                       SizedBox(height: 16.h),
 
+                      // حقل تأكيد كلمة السر
                       CustomTextformfaild(
-                        prefixIcon: Icon(Icons.lock, color: AppColors.primary),
                         controller: cubit.confirmPasswordController,
                         obscureText: cubit.isConfirmPassword,
                         keyboardType: TextInputType.visiblePassword,
@@ -135,18 +186,25 @@ class RegisterView extends StatelessWidget {
                               value,
                               cubit.passwordController.text,
                             ),
+                        prefixIcon: Icon(
+                          Icons.lock_reset_rounded,
+                          color: AppColors.primary,
+                          size: 20.sp,
+                        ),
                         suffixIcon: IconButton(
                           onPressed: cubit.changeConfirmPasswordVisibility,
                           icon: Icon(
                             cubit.isConfirmPassword
-                                ? Icons.visibility
-                                : Icons.visibility_off,
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            size: 20.sp,
                           ),
                         ),
                       ),
 
                       SizedBox(height: 20.h),
 
+                      // اختيار الجامعة والقسم بشكل منسق
                       Row(
                         children: [
                           Expanded(
@@ -164,120 +222,110 @@ class RegisterView extends StatelessWidget {
                                         list
                                             .map((e) => e.universityName!)
                                             .toList(),
-                                    validator: AppValidator.requiredValidator,
                                     onChanged: (value) {
                                       if (value == null) return;
-
                                       final uni = list.firstWhere(
                                         (e) => e.universityName == value,
                                       );
-
                                       cubit.selectedUniversityName = value;
                                       cubit.selectedUniversityId = uni.sId;
                                     },
                                   );
-                                } else if (state is UniversitiesLoading) {
-                                  return Center(
-                                    child: const CircularProgressIndicator(),
-                                  );
-                                } else if (state is UniversitiesError) {
-                                  return Text(state.error);
-                                } else {
-                                  return CustomDropdownField(
-                                    hintText: "University",
-                                    items: const [],
-                                  );
                                 }
+                                return CustomDropdownField(
+                                  hintText: "University",
+                                  items: const [],
+                                );
                               },
                             ),
                           ),
-
                           SizedBox(width: 12.w),
-
                           Expanded(
-                            child: BlocBuilder<
-                              DepartmentCubit,
-                              DepartmentState
-                            >(
-                              builder: (context, state) {
-                                if (state is DepartmentSuccess) {
-                                  final list = state.departments.data!;
-                                  return CustomDropdownField(
-                                    hintText: "Department",
-                                    value: cubit.selectedDepartmentName,
-                                    items:
-                                        list
-                                            .map((e) => e.departmentName!)
-                                            .toList(),
-                                    validator: AppValidator.requiredValidator,
-                                    onChanged: (value) {
-                                      if (value == null) return;
-
-                                      final dep = list.firstWhere(
-                                        (e) => e.departmentName == value,
+                            child:
+                                BlocBuilder<DepartmentCubit, DepartmentState>(
+                                  builder: (context, state) {
+                                    if (state is DepartmentSuccess) {
+                                      final list = state.departments.data!;
+                                      return CustomDropdownField(
+                                        hintText: "Department",
+                                        value: cubit.selectedDepartmentName,
+                                        items:
+                                            list
+                                                .map((e) => e.departmentName!)
+                                                .toList(),
+                                        onChanged: (value) {
+                                          if (value == null) return;
+                                          final dep = list.firstWhere(
+                                            (e) => e.departmentName == value,
+                                          );
+                                          cubit.selectedDepartmentName = value;
+                                          cubit.selectedDepartmentId = dep.sId;
+                                        },
                                       );
-
-                                      cubit.selectedDepartmentName = value;
-                                      cubit.selectedDepartmentId = dep.sId;
-                                    },
-                                  );
-                                } else if (state is DepartmentLoading) {
-                                  return Center(
-                                    child: const CircularProgressIndicator(),
-                                  );
-                                } else if (state is DepartmentError) {
-                                  return Text(state.message);
-                                } else {
-                                  return CustomDropdownField(
-                                    hintText: "Department",
-                                    items: const [],
-                                  );
-                                }
-                              },
-                            ),
+                                    }
+                                    return CustomDropdownField(
+                                      hintText: "Department",
+                                      items: const [],
+                                    );
+                                  },
+                                ),
                           ),
                         ],
                       ),
 
-                      SizedBox(height: 20.h),
+                      SizedBox(height: 35.h),
 
+                      // زرار إنشاء الحساب
                       state is RegisterLoading
-                          ? const CircularProgressIndicator()
-                          : CustomButton(
-                            text: "Create Account",
-                            onPressed: cubit.onRegisterPressed,
+                          ? const Center(child: CircularProgressIndicator())
+                          : Container(
+                            decoration: BoxDecoration(
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withOpacity(0.3),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
+                            ),
+                            child: CustomButton(
+                              text: "Create Account",
+                              onPressed: cubit.onRegisterPressed,
+                            ),
                           ),
-                      SizedBox(height: 16.h),
+
+                      SizedBox(height: 25.h),
+
+                      // الرجوع لتسجيل الدخول
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
                             "Already have an account? ",
                             style: TextStyle(
-                              color: Colors.grey,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18.sp,
+                              color: Colors.grey.shade600,
+                              fontSize: 13.sp,
                             ),
                           ),
                           GestureDetector(
-                            onTap: () {
-                              MyNavigator.goTo(
-                                context,
-                                LoginView(),
-                                type: NavigatorType.push,
-                              );
-                            },
+                            onTap:
+                                () => MyNavigator.goTo(
+                                  context,
+                                  const LoginView(),
+                                  type: NavigatorType.push,
+                                ),
                             child: Text(
                               "Login",
                               style: TextStyle(
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 18.sp,
+                                fontSize: 14.sp,
                               ),
                             ),
                           ),
                         ],
                       ),
+                      SizedBox(height: 50.h),
                     ],
                   ),
                 ),

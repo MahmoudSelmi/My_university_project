@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 import '../manager/verify_cubit/verify_cubit.dart';
 import '../manager/verify_cubit/verify_states.dart';
@@ -25,11 +26,16 @@ class _VerifyViewState extends State<VerifyView> {
     6,
     (_) => TextEditingController(),
   );
-
   final List<FocusNode> focusNodes = List.generate(6, (_) => FocusNode());
 
   Timer? _timer;
   int _remainingSeconds = 600;
+
+  final LinearGradient brandGradient = const LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF6366F1), Color(0xFFA855F7), Color(0xFFEC4899)],
+  );
 
   @override
   void initState() {
@@ -40,15 +46,15 @@ class _VerifyViewState extends State<VerifyView> {
   void _startTimer() {
     _timer?.cancel();
     _remainingSeconds = 600;
-
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_remainingSeconds == 0) {
         timer.cancel();
-        setState(() {});
+        if (mounted) setState(() {});
       } else {
-        setState(() {
-          _remainingSeconds--;
-        });
+        if (mounted)
+          setState(() {
+            _remainingSeconds--;
+          });
       }
     });
   }
@@ -77,11 +83,10 @@ class _VerifyViewState extends State<VerifyView> {
     } else if (value.isEmpty && index > 0) {
       focusNodes[index - 1].requestFocus();
     }
+    setState(() {}); // لتحديث لون الحواف فوراً عند الكتابة
   }
 
-  String getCode() {
-    return controllers.map((e) => e.text).join();
-  }
+  String getCode() => controllers.map((e) => e.text).join();
 
   @override
   Widget build(BuildContext context) {
@@ -91,119 +96,218 @@ class _VerifyViewState extends State<VerifyView> {
         listener: (context, state) {
           if (state is VerifySuccess) {
             AppToast.success(context, state.message);
-            MyNavigator.goTo(context, const LoginView());
+            MyNavigator.goTo(
+              context,
+              const LoginView(),
+              type: NavigatorType.pushAndRemoveUntil,
+            );
           } else if (state is VerifyError) {
             AppToast.error(context, state.error);
           }
         },
         builder: (context, state) {
           return Scaffold(
-            backgroundColor: AppColors.white,
+            backgroundColor: const Color(0xFFF8FAFC),
             appBar: AppBar(
-              backgroundColor: AppColors.white,
-              title: const Text("Verify Code"),
-              centerTitle: true,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: Colors.black,
+                ),
+                onPressed: () => Navigator.pop(context),
+              ),
             ),
-            body: Padding(
-              padding: EdgeInsets.all(24.w),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    "Enter Verification Code",
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-
-                  SizedBox(height: 12.h),
-
-                  Text(
-                    "We sent a 6-digit code to\n${widget.email}",
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-
-                  SizedBox(height: 16.h),
-
-                  Text(
-                    timerText,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color:
-                          _remainingSeconds == 0
-                              ? Colors.red
-                              : AppColors.primary,
-                    ),
-                  ),
-
-                  SizedBox(height: 32.h),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: List.generate(
-                      6,
-                      (index) => SizedBox(
-                        width: 50.w,
-                        child: TextField(
-                          controller: controllers[index],
-                          focusNode: focusNodes[index],
-                          textAlign: TextAlign.center,
-                          keyboardType: TextInputType.number,
-                          maxLength: 1,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                          ],
-
-                          decoration: const InputDecoration(
-                            counterText: "",
-                            border: OutlineInputBorder(),
+            body: AnimationLimiter(
+              child: ListView(
+                padding: EdgeInsets.symmetric(horizontal: 24.w),
+                physics: const BouncingScrollPhysics(),
+                children: AnimationConfiguration.toStaggeredList(
+                  duration: const Duration(milliseconds: 600),
+                  childAnimationBuilder:
+                      (widget) => SlideAnimation(
+                        verticalOffset: 30.0,
+                        child: FadeInAnimation(child: widget),
+                      ),
+                  children: [
+                    SizedBox(height: 20.h),
+                    Center(
+                      child: ShaderMask(
+                        shaderCallback:
+                            (bounds) => brandGradient.createShader(bounds),
+                        child: Text(
+                          'Khotwa',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 42.sp,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -1.0,
                           ),
-                          onChanged: (value) => onChanged(value, index),
                         ),
                       ),
                     ),
-                  ),
-
-                  SizedBox(height: 32.h),
-
-                  state is VerifyLoading
-                      ? const CircularProgressIndicator()
-                      : CustomButton(
-                        text: "Verify",
-                        width: double.infinity,
-                        height: 50,
-                        color: AppColors.primary,
-                        onPressed: () {
-                          if (_remainingSeconds == 0) {
-                            AppToast.error(
-                              context,
-                              "Code expired, resend again",
-                            );
-                            return;
-                          }
-
-                          final code = getCode();
-
-                          if (code.length < 6) {
-                            AppToast.error(context, "Please enter 6 digits");
-                            return;
-                          }
-
-                          VerifyCubit.get(
-                            context,
-                          ).verify(email: widget.email, code: code);
-                        },
+                    SizedBox(height: 40.h),
+                    const Center(
+                      child: Text(
+                        "Verification Code 📩",
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
                       ),
-
-                  if (_remainingSeconds == 0)
-                    TextButton(
-                      onPressed: () {
-                        _startTimer();
-                        AppToast.success(context, "Verification code resent");
-                      },
-                      child: const Text("Resend Code"),
                     ),
-                ],
+                    SizedBox(height: 12.h),
+                    Center(
+                      child: Text(
+                        "We've sent a 6-digit code to\n${widget.email}",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 14.sp,
+                          height: 1.5,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 24.h),
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          timerText,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color:
+                                _remainingSeconds == 0
+                                    ? Colors.red
+                                    : AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 40.h),
+
+                    // حقول الـ OTP باللون الأسود الصريح والواضح
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: List.generate(
+                        6,
+                        (index) => Container(
+                          width: 45.w,
+                          height: 55.h,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color:
+                                  controllers[index].text.isNotEmpty
+                                      ? Colors.black
+                                      : Colors.grey.shade300,
+                              width: 2.0, // سمك الحواف
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.03),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: TextField(
+                              controller: controllers[index],
+                              focusNode: focusNodes[index],
+                              textAlign: TextAlign.center,
+                              keyboardType: TextInputType.number,
+                              maxLength: 1,
+                              obscureText: false, // لضمان ظهور الرقم وليس نقاط
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              style: TextStyle(
+                                fontSize: 24.sp,
+                                fontWeight: FontWeight.w900, // أتقل وزن للخط
+                                color: Colors.black, // أسود صريح
+                              ),
+                              decoration: const InputDecoration(
+                                counterText: "",
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                              onChanged: (value) => onChanged(value, index),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(height: 40.h),
+                    state is VerifyLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : Container(
+                          decoration: BoxDecoration(
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withOpacity(0.3),
+                                blurRadius: 20,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
+                          ),
+                          child: CustomButton(
+                            text: "Verify Account",
+                            onPressed: () {
+                              if (_remainingSeconds == 0) {
+                                AppToast.error(
+                                  context,
+                                  "Code expired, resend again",
+                                );
+                                return;
+                              }
+                              final code = getCode();
+                              if (code.length < 6) {
+                                AppToast.error(
+                                  context,
+                                  "Please enter 6 digits",
+                                );
+                                return;
+                              }
+                              VerifyCubit.get(
+                                context,
+                              ).verify(email: widget.email, code: code);
+                            },
+                          ),
+                        ),
+                    if (_remainingSeconds == 0)
+                      Center(
+                        child: TextButton(
+                          onPressed: () {
+                            _startTimer();
+                            AppToast.success(
+                              context,
+                              "Verification code resent",
+                            );
+                          },
+                          child: const Text(
+                            "Resend New Code",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           );

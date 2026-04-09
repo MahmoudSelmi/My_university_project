@@ -26,10 +26,14 @@ class TeamsScreen extends StatelessWidget {
           var cubit = TeamsCubit.get(context);
 
           return Scaffold(
-            backgroundColor: const Color(0xFFF0F2F5),
-            appBar: _buildModernAppBar(cubit.teamModel?.teamName),
+            // استبدال اللون الثابت بلون الـ Scaffold الخاص بالثيم
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            appBar: _buildModernAppBar(context, cubit.teamModel?.teamName),
             body: Stack(
-              children: [_buildBackgroundDecoration(), _buildUI(state, cubit)],
+              children: [
+                _buildBackgroundDecoration(context),
+                _buildUI(context, state, cubit),
+              ],
             ),
           );
         },
@@ -37,7 +41,7 @@ class TeamsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBackgroundDecoration() {
+  Widget _buildBackgroundDecoration(BuildContext context) {
     return Positioned(
       top: -50,
       left: -50,
@@ -45,14 +49,18 @@ class TeamsScreen extends StatelessWidget {
         width: 200,
         height: 200,
         decoration: BoxDecoration(
-          color: const Color(0xFF6366F1).withOpacity(0.03),
+          // جعل الديكور يتناسب مع لون البريماري للثيم
+          color: Theme.of(context).primaryColor.withOpacity(0.03),
           shape: BoxShape.circle,
         ),
       ),
     );
   }
 
-  PreferredSizeWidget _buildModernAppBar(String? teamName) {
+  PreferredSizeWidget _buildModernAppBar(
+    BuildContext context,
+    String? teamName,
+  ) {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
@@ -67,7 +75,12 @@ class TeamsScreen extends StatelessWidget {
               children: [
                 Text(
                   'My Collaboration 👋',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                  style: TextStyle(
+                    color: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.color?.withOpacity(0.6),
+                    fontSize: 13,
+                  ),
                 ),
                 ShaderMask(
                   shaderCallback: (bounds) => meshGradient.createShader(bounds),
@@ -88,21 +101,21 @@ class TeamsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildUI(TeamsState state, TeamsCubit cubit) {
+  Widget _buildUI(BuildContext context, TeamsState state, TeamsCubit cubit) {
     if (state is TeamsLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFFA855F7)),
+      return Center(
+        child: CircularProgressIndicator(color: Theme.of(context).primaryColor),
       );
     } else if (state is TeamsError) {
       return Center(
         child: Text(state.error, style: const TextStyle(color: Colors.red)),
       );
     } else {
-      return _buildBody(cubit.teamModel);
+      return _buildBody(context, cubit.teamModel);
     }
   }
 
-  Widget _buildBody(TeamModel? model) {
+  Widget _buildBody(BuildContext context, TeamModel? model) {
     if (model == null) return const Center(child: Text("No Data Found"));
 
     return AnimationLimiter(
@@ -124,16 +137,17 @@ class TeamsScreen extends StatelessWidget {
                   ),
               children: [
                 _buildModernHeaderCard(
+                  context,
                   "Team Code",
                   model.teamCode ?? "N/A",
                   Icons.qr_code_rounded,
                 ),
                 const SizedBox(height: 25),
-                _buildSectionTitle("Project Supervisor"),
+                _buildSectionTitle(context, "Project Supervisor"),
                 const SizedBox(height: 12),
-                _buildDoctorCard(model),
+                _buildDoctorCard(context, model),
                 const SizedBox(height: 25),
-                _buildSectionTitle("Team Members"),
+                _buildSectionTitle(context, "Team Members"),
                 const SizedBox(height: 12),
                 ListView.separated(
                   shrinkWrap: true,
@@ -146,7 +160,10 @@ class TeamsScreen extends StatelessWidget {
                         position: index,
                         duration: const Duration(milliseconds: 500),
                         child: FlipAnimation(
-                          child: _buildMemberCard(model.teamMembers![index]),
+                          child: _buildMemberCard(
+                            context,
+                            model.teamMembers![index],
+                          ),
                         ),
                       ),
                 ),
@@ -158,7 +175,7 @@ class TeamsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
     return Row(
       children: [
         Container(
@@ -172,40 +189,34 @@ class TeamsScreen extends StatelessWidget {
         const SizedBox(width: 10),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1F2937),
+            color: Theme.of(context).textTheme.bodyLarge?.color,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildModernHeaderCard(String title, String value, IconData icon) {
+  Widget _buildModernHeaderCard(
+    BuildContext context,
+    String title,
+    String value,
+    IconData icon,
+  ) {
     return Container(
       padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.white, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF6366F1).withOpacity(0.06),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
+      decoration: _cardDecoration(context), // استخدام الـ decoration الموحد
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF6366F1).withOpacity(0.08),
+              color: Theme.of(context).primaryColor.withOpacity(0.08),
               borderRadius: BorderRadius.circular(15),
             ),
-            child: Icon(icon, color: const Color(0xFF6366F1), size: 28),
+            child: Icon(icon, color: Theme.of(context).primaryColor, size: 28),
           ),
           const SizedBox(width: 18),
           Column(
@@ -213,15 +224,20 @@ class TeamsScreen extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                style: TextStyle(
+                  color: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.color?.withOpacity(0.5),
+                  fontSize: 12,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1F2937),
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
               ),
             ],
@@ -231,30 +247,37 @@ class TeamsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDoctorCard(TeamModel model) {
+  Widget _buildDoctorCard(BuildContext context, TeamModel model) {
     return Container(
       padding: const EdgeInsets.all(18),
-      decoration: _cardDecoration(),
+      decoration: _cardDecoration(context),
       child: Column(
         children: [
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: CircleAvatar(
               radius: 26,
-              backgroundColor: const Color(0xFF6366F1).withOpacity(0.1),
-              child: const Icon(
+              backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+              child: Icon(
                 Icons.person_rounded,
-                color: Color(0xFF6366F1),
+                color: Theme.of(context).primaryColor,
                 size: 28,
               ),
             ),
             title: Text(
               model.doctorFullName ?? "N/A",
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
+              ),
             ),
             subtitle: Text(
               model.doctorEmail ?? "",
-              style: const TextStyle(fontSize: 13),
+              style: TextStyle(
+                fontSize: 13,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+              ),
             ),
             trailing: const Icon(
               Icons.verified_user_rounded,
@@ -262,22 +285,30 @@ class TeamsScreen extends StatelessWidget {
               size: 20,
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 8.0),
-            child: Divider(height: 1, thickness: 0.5),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Divider(
+              height: 1,
+              thickness: 0.5,
+              color: Theme.of(context).dividerColor,
+            ),
           ),
           Row(
             children: [
               Icon(
                 Icons.phone_android_rounded,
                 size: 16,
-                color: Colors.grey.shade400,
+                color: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.color?.withOpacity(0.5),
               ),
               const SizedBox(width: 8),
               Text(
                 model.doctorPhone ?? "No Phone",
                 style: TextStyle(
-                  color: Colors.grey.shade700,
+                  color: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.color?.withOpacity(0.8),
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                 ),
@@ -289,18 +320,18 @@ class TeamsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMemberCard(TeamMember member) {
+  Widget _buildMemberCard(BuildContext context, TeamMember member) {
     bool isLeader = member.memberIsLeader ?? false;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: _cardDecoration(),
+      decoration: _cardDecoration(context),
       child: Row(
         children: [
           CircleAvatar(
             backgroundColor:
                 isLeader
                     ? const Color(0xFFA855F7).withOpacity(0.1)
-                    : Colors.grey.shade100,
+                    : Theme.of(context).dividerColor.withOpacity(0.1),
             child: Icon(
               isLeader ? Icons.star_rounded : Icons.person_outline_rounded,
               color: isLeader ? const Color(0xFFA855F7) : Colors.grey,
@@ -313,14 +344,18 @@ class TeamsScreen extends StatelessWidget {
               children: [
                 Text(
                   member.memberFullName ?? "Member",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
                 Text(
                   member.memberRole ?? "Developer",
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),
@@ -353,14 +388,18 @@ class TeamsScreen extends StatelessWidget {
     );
   }
 
-  BoxDecoration _cardDecoration() {
+  BoxDecoration _cardDecoration(BuildContext context) {
     return BoxDecoration(
-      color: Colors.white.withOpacity(0.96),
+      // استخدام cardColor ليتغير آلياً بين الأبيض والكحلي الغامق
+      color: Theme.of(context).cardColor.withOpacity(0.96),
       borderRadius: BorderRadius.circular(24),
-      border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
+      border: Border.all(
+        color: Theme.of(context).dividerColor.withOpacity(0.1),
+        width: 1.5,
+      ),
       boxShadow: [
         BoxShadow(
-          color: const Color(0xFF6366F1).withOpacity(0.06),
+          color: Colors.black.withOpacity(0.04),
           blurRadius: 15,
           offset: const Offset(0, 8),
         ),

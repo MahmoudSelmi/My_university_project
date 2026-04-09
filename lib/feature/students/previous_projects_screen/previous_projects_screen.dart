@@ -20,13 +20,16 @@ class PreviousProjectsScreen extends StatelessWidget {
     return BlocProvider(
       create: (context) => AllProjectsCubit()..getAllProjects(),
       child: Scaffold(
-        backgroundColor: const Color(0xFFF0F2F5),
-        appBar: _buildAppBar(),
+        // استخدام خلفية الثيم
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        appBar: _buildAppBar(context),
         body: BlocBuilder<AllProjectsCubit, AllProjectsState>(
           builder: (context, state) {
             if (state is AllProjectsLoading) {
-              return const Center(
-                child: CircularProgressIndicator(color: Color(0xFFA855F7)),
+              return Center(
+                child: CircularProgressIndicator(
+                  color: Theme.of(context).primaryColor,
+                ),
               );
             } else if (state is AllProjectsSuccess) {
               return AnimationLimiter(
@@ -43,7 +46,7 @@ class PreviousProjectsScreen extends StatelessWidget {
                         child: FadeInAnimation(
                           child:
                               index == 0
-                                  ? _buildStatsCard(state.stats)
+                                  ? _buildStatsCard(context, state.stats)
                                   : _buildProjectCard(
                                     context,
                                     state.projects[index - 1],
@@ -55,7 +58,14 @@ class PreviousProjectsScreen extends StatelessWidget {
                 ),
               );
             } else if (state is AllProjectsError) {
-              return Center(child: Text(state.message));
+              return Center(
+                child: Text(
+                  state.message,
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
+                ),
+              );
             }
             return const SizedBox();
           },
@@ -64,7 +74,7 @@ class PreviousProjectsScreen extends StatelessWidget {
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
@@ -84,17 +94,21 @@ class PreviousProjectsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsCard(Stats stats) {
+  Widget _buildStatsCard(BuildContext context, Stats stats) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 16),
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
+        // لون الكارت يتغير حسب الثيم
+        color: Theme.of(context).cardColor.withOpacity(0.9),
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: Colors.white, width: 2),
+        border: Border.all(
+          color: Theme.of(context).dividerColor.withOpacity(0.1),
+          width: 2,
+        ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6366F1).withOpacity(0.05),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -104,18 +118,21 @@ class PreviousProjectsScreen extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _statItem(
+            context,
             "Total",
             stats.totalProjects.toString(),
             const Color(0xFF6366F1),
             Icons.folder_copy_outlined,
           ),
           _statItem(
+            context,
             "Done",
             stats.completedProjects.toString(),
             const Color(0xFF10B981),
             Icons.check_circle_outline,
           ),
           _statItem(
+            context,
             "Year",
             stats.currentYearProjects.toString(),
             const Color(0xFFF59E0B),
@@ -126,7 +143,13 @@ class PreviousProjectsScreen extends StatelessWidget {
     );
   }
 
-  Widget _statItem(String label, String value, Color color, IconData icon) {
+  Widget _statItem(
+    BuildContext context,
+    String label,
+    String value,
+    Color color,
+    IconData icon,
+  ) {
     return Column(
       children: [
         Icon(icon, color: color.withOpacity(0.7), size: 20),
@@ -141,8 +164,11 @@ class PreviousProjectsScreen extends StatelessWidget {
         ),
         Text(
           label,
-          style: const TextStyle(
-            color: Colors.grey,
+          style: TextStyle(
+            color:
+                Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.color, // لون النص الفرعي من الثيم
             fontSize: 12,
             fontWeight: FontWeight.w500,
           ),
@@ -156,12 +182,15 @@ class PreviousProjectsScreen extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.95),
+        color: Theme.of(context).cardColor, // لون الكارت من الثيم
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.white, width: 1.5),
+        border: Border.all(
+          color: Theme.of(context).dividerColor.withOpacity(0.1),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6366F1).withOpacity(0.06),
+            color: Colors.black.withOpacity(0.03),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -178,33 +207,34 @@ class PreviousProjectsScreen extends StatelessWidget {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF6366F1).withOpacity(0.08),
+                  color: Theme.of(context).primaryColor.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Text(
+                child: Text(
                   "PAST PROJECT",
                   style: TextStyle(
-                    color: Color(0xFF6366F1),
+                    color: Theme.of(context).primaryColor,
                     fontWeight: FontWeight.bold,
                     fontSize: 9,
                   ),
                 ),
               ),
               const Spacer(),
-              const Icon(
+              Icon(
                 Icons.history_toggle_off_rounded,
                 size: 14,
-                color: Colors.grey,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
               ),
             ],
           ),
           const SizedBox(height: 12),
           Text(
             project.projectTitle ?? 'No Title',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 19,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1F2937),
+              color:
+                  Theme.of(context).textTheme.bodyLarge?.color, // لون العنوان
             ),
           ),
           const SizedBox(height: 6),
@@ -212,7 +242,7 @@ class PreviousProjectsScreen extends StatelessWidget {
             project.projectDescription ?? '',
             maxLines: 2,
             style: TextStyle(
-              color: Colors.grey.shade600,
+              color: Theme.of(context).textTheme.bodyMedium?.color, // لون الوصف
               fontSize: 13,
               height: 1.4,
             ),
@@ -222,19 +252,22 @@ class PreviousProjectsScreen extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 16,
-                backgroundColor: const Color(0xFF6366F1).withOpacity(0.1),
-                child: const Icon(
+                backgroundColor: Theme.of(
+                  context,
+                ).primaryColor.withOpacity(0.1),
+                child: Icon(
                   Icons.person_outline_rounded,
                   size: 18,
-                  color: Color(0xFF6366F1),
+                  color: Theme.of(context).primaryColor,
                 ),
               ),
               const SizedBox(width: 10),
               Text(
                 project.doctorFullName ?? 'Supervisor',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
               ),
               const Spacer(),

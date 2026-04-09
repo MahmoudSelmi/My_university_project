@@ -22,11 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final LinearGradient meshGradient = const LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [
-      Color(0xFF6366F1), // Indigo
-      Color(0xFFA855F7), // Purple
-      Color(0xFFEC4899), // Pink
-    ],
+    colors: [Color(0xFF6366F1), Color(0xFFA855F7), Color(0xFFEC4899)],
   );
 
   @override
@@ -34,19 +30,18 @@ class _HomeScreenState extends State<HomeScreen> {
     return BlocBuilder<HomeCubit, HomeState>(
       builder: (context, state) {
         return Scaffold(
-          backgroundColor: const Color(0xFFF0F2F5),
-          appBar: _buildModernAppBar(),
-          // استخدام Stack عشان نحط خلفية خفيفة للمحتوى
+          // استخدام لون الخلفية من الثيم
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          appBar: _buildModernAppBar(context),
           body: Stack(
-            children: [_buildBackgroundDecoration(), _buildBody(state)],
+            children: [_buildBackgroundDecoration(context), _buildBody(state)],
           ),
         );
       },
     );
   }
 
-  // إضافة دوائر خفيفة في الخلفية لتعزيز شكل البراند
-  Widget _buildBackgroundDecoration() {
+  Widget _buildBackgroundDecoration(BuildContext context) {
     return Positioned(
       top: -100,
       right: -100,
@@ -54,14 +49,14 @@ class _HomeScreenState extends State<HomeScreen> {
         width: 300,
         height: 300,
         decoration: BoxDecoration(
-          color: const Color(0xFF6366F1).withOpacity(0.03),
+          color: Theme.of(context).primaryColor.withOpacity(0.03),
           shape: BoxShape.circle,
         ),
       ),
     );
   }
 
-  PreferredSizeWidget _buildModernAppBar() {
+  PreferredSizeWidget _buildModernAppBar(BuildContext context) {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
@@ -75,7 +70,10 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Text(
                 'Welcome Back 👋',
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                  fontSize: 13,
+                ),
               ),
               ShaderMask(
                 shaderCallback: (bounds) => meshGradient.createShader(bounds),
@@ -92,15 +90,15 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-      actions: [_buildNotificationIcon()],
+      actions: [_buildNotificationIcon(context)],
     );
   }
 
-  Widget _buildNotificationIcon() {
+  Widget _buildNotificationIcon(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(right: 20, top: 20, bottom: 20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10),
@@ -110,9 +108,9 @@ class _HomeScreenState extends State<HomeScreen> {
         alignment: Alignment.center,
         children: [
           IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.notifications_none_rounded,
-              color: Color(0xFF6366F1),
+              color: Theme.of(context).primaryColor,
               size: 22,
             ),
             onPressed: () {},
@@ -123,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Container(
               padding: const EdgeInsets.all(3),
               decoration: const BoxDecoration(
-                color: Color(0xFFEC4899), // براند بينك
+                color: Color(0xFFEC4899),
                 shape: BoxShape.circle,
               ),
               constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
@@ -145,8 +143,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildBody(HomeState state) {
     if (state is HomeLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFFA855F7)),
+      return Center(
+        child: CircularProgressIndicator(color: Theme.of(context).primaryColor),
       );
     } else if (state is HomeSuccess) {
       return AnimationLimiter(
@@ -162,7 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: SlideAnimation(
                   verticalOffset: 30.0,
                   child: FadeInAnimation(
-                    child: _buildProjectCard(state.projects[index]),
+                    child: _buildProjectCard(context, state.projects[index]),
                   ),
                 ),
               );
@@ -171,22 +169,30 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     } else if (state is HomeError) {
-      return Center(child: Text(state.message));
+      return Center(
+        child: Text(
+          state.message,
+          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+        ),
+      );
     }
     return const SizedBox();
   }
 
-  Widget _buildProjectCard(ProjectModel project) {
+  Widget _buildProjectCard(BuildContext context, ProjectModel project) {
     return Container(
       margin: const EdgeInsets.only(bottom: 18),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.96),
+        color: Theme.of(context).cardColor.withOpacity(0.96),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
+        border: Border.all(
+          color: Theme.of(context).dividerColor.withOpacity(0.1),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6366F1).withOpacity(0.06),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -203,13 +209,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF6366F1).withOpacity(0.08),
+                  color: Theme.of(context).primaryColor.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   project.projectType?.toUpperCase() ?? 'WEB',
-                  style: const TextStyle(
-                    color: Color(0xFF6366F1),
+                  style: TextStyle(
+                    color: Theme.of(context).primaryColor,
                     fontWeight: FontWeight.bold,
                     fontSize: 9,
                   ),
@@ -218,17 +224,20 @@ class _HomeScreenState extends State<HomeScreen> {
               const Spacer(),
               Text(
                 project.projectYear ?? '',
-                style: TextStyle(color: Colors.grey.shade400, fontSize: 11),
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                  fontSize: 11,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 12),
           Text(
             project.projectTitle ?? 'No Title',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 19,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1F2937),
+              color: Theme.of(context).textTheme.bodyLarge?.color,
             ),
           ),
           const SizedBox(height: 6),
@@ -236,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
             project.projectDescription ?? 'No Description',
             maxLines: 2,
             style: TextStyle(
-              color: Colors.grey.shade600,
+              color: Theme.of(context).textTheme.bodyMedium?.color,
               fontSize: 13,
               height: 1.4,
             ),
@@ -246,30 +255,33 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               CircleAvatar(
                 radius: 16,
-                backgroundColor: const Color(0xFF6366F1).withOpacity(0.1),
+                backgroundColor: Theme.of(
+                  context,
+                ).primaryColor.withOpacity(0.1),
                 backgroundImage:
                     project.doctorImage != null
                         ? NetworkImage(project.doctorImage!)
                         : null,
                 child:
                     project.doctorImage == null
-                        ? const Icon(
+                        ? Icon(
                           Icons.person,
                           size: 18,
-                          color: Color(0xFF6366F1),
+                          color: Theme.of(context).primaryColor,
                         )
                         : null,
               ),
               const SizedBox(width: 8),
               Text(
                 project.doctorFullName ?? 'Doctor',
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 13,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
               ),
               const Spacer(),
-              _buildModernButton(project),
+              _buildModernButton(context, project),
             ],
           ),
         ],
@@ -277,7 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildModernButton(ProjectModel project) {
+  Widget _buildModernButton(BuildContext context, ProjectModel project) {
     return Container(
       decoration: BoxDecoration(
         gradient: meshGradient,
@@ -294,14 +306,13 @@ class _HomeScreenState extends State<HomeScreen> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ProjectDetailsScreen(project: project),
+          onTap:
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProjectDetailsScreen(project: project),
+                ),
               ),
-            );
-          },
           child: const Padding(
             padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
             child: Text(

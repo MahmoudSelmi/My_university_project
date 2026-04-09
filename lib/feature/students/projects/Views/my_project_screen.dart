@@ -1,205 +1,173 @@
+import 'package:auth_slmi/feature/students/projects/Manager/MyProjectCubit.dart';
+import 'package:auth_slmi/feature/students/projects/Models/project_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:auth_slmi/feature/students/projects/Manager/MyProjectCubit.dart';
-import 'package:auth_slmi/feature/students/projects/Manager/MyProjectState.dart';
-import 'package:auth_slmi/core/Models/project_model.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
-class MyProjectScreen extends StatelessWidget {
-  const MyProjectScreen({super.key});
 
-  final LinearGradient meshGradient = const LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFF6366F1), Color(0xFFA855F7), Color(0xFFEC4899)],
-  );
+class MyProjectDetailsView extends StatelessWidget {
+  const MyProjectDetailsView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => MyProjectCubit()..getMyProject(),
-      child: BlocConsumer<MyProjectCubit, MyProjectState>(
-        listener: (context, state) {
-          if (state is MyProjectActionSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("تمت العملية بنجاح!"),
-                backgroundColor: Colors.green,
-              ),
-            );
-          }
-        },
-        builder: (context, state) {
-          var cubit = MyProjectCubit.get(context);
-          return Scaffold(
-            backgroundColor: const Color(0xFFF8FAFC),
-            appBar: AppBar(
-              backgroundColor: Colors.white,
-              elevation: 0.5,
-              centerTitle: true,
-              title: ShaderMask(
-                shaderCallback: (bounds) => meshGradient.createShader(bounds),
-                child: const Text(
-                  'تفاصيل مشروعي',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-            body: _buildUI(state, cubit),
-          );
-        },
+      create: (context) => MyProjectCubit()..getMyProjectDetails(),
+      child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: BlocBuilder<MyProjectCubit, MyProjectState>(
+          builder: (context, state) {
+            if (state is MyProjectLoading) return const Center(child: CircularProgressIndicator());
+            if (state is MyProjectError) return Center(child: Text(state.err));
+            if (state is MyProjectSuccess) return _buildBody(context, state.model);
+            return const SizedBox();
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildUI(MyProjectState state, MyProjectCubit cubit) {
-    if (state is MyProjectLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFFA855F7)),
-      );
-    } else if (state is MyProjectError) {
-      return _buildErrorState(state.message, cubit);
-    } else {
-      return _buildContent(cubit.myProject, cubit);
-    }
-  }
+  Widget _buildBody(BuildContext context, MyProjectModel model) {
+    final meshGradient = const LinearGradient(
+      colors: [Color(0xFF6366F1), Color(0xFFA855F7), Color(0xFFEC4899)],
+    );
 
-  Widget _buildContent(ProjectModel? project, MyProjectCubit cubit) {
-    if (project == null) return const Center(child: Text("لا توجد بيانات"));
-
-    return SingleChildScrollView(
+    return CustomScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          _buildSectionCard(
-            title: "معلومات المشروع",
-            icon: Icons.assignment_rounded,
+      slivers: [
+        _buildSliverAppBar(context, model.projectTitle ?? "", meshGradient),
+        SliverToBoxAdapter(
+          child: AnimationLimiter(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  project.projectTitle ?? '',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  project.projectDescription ?? '',
-                  style: TextStyle(color: Colors.grey.shade700, height: 1.4),
-                ),
-              ],
-            ),
-          ),
-          _buildSectionCard(
-            title: "الإشراف والجامعة",
-            icon: Icons.school_rounded,
-            child: Column(
-              children: [
-                _buildInfoRow(
-                  Icons.person,
-                  "المشرف:",
-                  "د. ${project.doctorFullName ?? 'غير محدد'}",
-                ),
-                // _buildInfoRow(Icons.account_balance, "الجامعة:", project.universityName ?? 'غير محدد'),
-              ],
-            ),
-          ),
-          // زر الحذف كمثال للأكشن
-          ElevatedButton.icon(
-            onPressed: () => cubit.deleteProjectImage(),
-            icon: const Icon(Icons.delete_forever),
-            label: const Text("حذف صورة المشروع"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+              children: AnimationConfiguration.toStaggeredList(
+                duration: const Duration(milliseconds: 500),
+                childAnimationBuilder: (widget) => SlideAnimation(verticalOffset: 50, child: FadeInAnimation(child: widget)),
+                children: [
+                  _buildStatusCard(context, model),
+                  _buildSectionTitle(context, "Description"),
+                  _buildInfoCard(context, model.projectDescription ?? ""),
+                  _buildSectionTitle(context, "Technologies"),
+                  _buildTechChips(context, model.technologies ?? []),
+                  _buildSectionTitle(context, "Supervisor"),
+                  _buildSupervisorCard(context, model),
+                  _buildSectionTitle(context, "Team Members"),
+                  ...model.teamMembers!.map((m) => _buildMemberTile(context, m)).toList(),
+                  _buildSectionTitle(context, "Documents"),
+                  ...model.files!.map((f) => _buildFileTile(context, f)).toList(),
+                  const SizedBox(height: 50),
+                ],
               ),
             ),
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSliverAppBar(BuildContext context, String title, Gradient gradient) {
+    return SliverAppBar(
+      expandedHeight: 150, pinned: true,
+      flexibleSpace: FlexibleSpaceBar(
+        centerTitle: true,
+        title: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+        background: Container(decoration: BoxDecoration(gradient: gradient)),
+      ),
+    );
+  }
+
+  Widget _buildStatusCard(BuildContext context, MyProjectModel model) {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(20)),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildSmallStat(context, "Year", model.projectYear ?? ""),
+          _buildSmallStat(context, "Type", model.projectType?.toUpperCase() ?? ""),
+          _buildSmallStat(context, "Status", "In Progress", color: Colors.orange),
         ],
       ),
     );
   }
 
-  Widget _buildSectionCard({
-    required String title,
-    required IconData icon,
-    required Widget child,
-  }) {
+  Widget _buildTechChips(BuildContext context, List<String> techs) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Wrap(
+        spacing: 8,
+        children: techs.map((t) => Chip(
+          label: Text(t, style: const TextStyle(fontSize: 12)),
+          backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+        )).toList(),
+      ),
+    );
+  }
+
+  Widget _buildSupervisorCard(BuildContext context, MyProjectModel model) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(20)),
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: CircleAvatar(backgroundColor: Colors.blue.withOpacity(0.1), child: const Icon(Icons.person, color: Colors.blue)),
+        title: Text(model.doctorFullName ?? "", style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(model.doctorEmail ?? ""),
+        trailing: IconButton(icon: const Icon(Icons.phone, color: Colors.green), onPressed: () {}),
+      ),
+    );
+  }
+
+  Widget _buildMemberTile(BuildContext context, TeamMember member) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: ListTile(
+        leading: CircleAvatar(child: Text(member.fullName![0])),
+        title: Text(member.fullName ?? ""),
+        subtitle: Text(member.role ?? ""),
+        trailing: member.isLeader! ? const Icon(Icons.star, color: Colors.amber) : null,
+      ),
+    );
+  }
+
+  Widget _buildFileTile(BuildContext context, ProjectFile file) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: ListTile(
+        leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
+        title: Text(file.fileName ?? "", maxLines: 1, overflow: TextOverflow.ellipsis),
+        trailing: const Icon(Icons.download),
+        onTap: () {},
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(BuildContext context, String title) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+      child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+    );
+  }
+
+  Widget _buildInfoCard(BuildContext context, String text) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: const Color(0xFFA855F7), size: 20),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-            ],
-          ),
-          const Divider(height: 24),
-          child,
-        ],
-      ),
+      decoration: BoxDecoration(color: Theme.of(context).cardColor.withOpacity(0.5), borderRadius: BorderRadius.circular(15)),
+      child: Text(text, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, height: 1.5)),
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: Colors.grey),
-          const SizedBox(width: 8),
-          Text(label, style: const TextStyle(color: Colors.grey)),
-          const SizedBox(width: 5),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildErrorState(String message, MyProjectCubit cubit) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.error_outline, size: 70, color: Colors.redAccent),
-          Text(message),
-          TextButton(
-            onPressed: () => cubit.getMyProject(),
-            child: const Text("Retry"),
-          ),
-        ],
-      ),
+  Widget _buildSmallStat(BuildContext context, String label, String value, {Color? color}) {
+    return Column(
+      children: [
+        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+        const SizedBox(height: 4),
+        Text(value, style: TextStyle(fontWeight: FontWeight.bold, color: color ?? Theme.of(context).textTheme.bodyLarge?.color)),
+      ],
     );
   }
 }

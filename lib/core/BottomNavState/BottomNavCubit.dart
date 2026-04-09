@@ -24,7 +24,7 @@ class BottomNavCubit extends Cubit<BottomNavState> {
 
   List<Widget> screens = const [
     HomeScreen(),
-    MyProjectScreen(),
+    MyProjectDetailsView(),
     TeamsScreen(),
     PreviousProjectsScreen(),
     ProfileScreen(),

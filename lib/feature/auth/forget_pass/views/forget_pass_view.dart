@@ -8,6 +8,7 @@ import 'package:auth_slmi/feature/auth/rest_pass/views/rest_pass_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 import '../manager/forget_cubit.dart';
 import '../manager/forget_states.dart';
@@ -15,19 +16,28 @@ import '../manager/forget_states.dart';
 class ForgetPassView extends StatelessWidget {
   const ForgetPassView({super.key});
 
+  final LinearGradient brandGradient = const LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF6366F1), Color(0xFFA855F7), Color(0xFFEC4899)],
+  );
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => ForgetCubit(),
       child: Scaffold(
-        backgroundColor: AppColors.white,
+        backgroundColor: const Color(0xFFF8FAFC),
         appBar: AppBar(
-          backgroundColor: AppColors.white,
-          title: Text(
-            "Forgot Password",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.sp),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: Colors.black,
+            ),
+            onPressed: () => Navigator.pop(context),
           ),
-          centerTitle: true,
         ),
         body: BlocConsumer<ForgetCubit, ForgetPasswordState>(
           listener: (context, state) {
@@ -36,61 +46,126 @@ class ForgetPassView extends StatelessWidget {
               AppToast.success(context, state.message);
               MyNavigator.goTo(
                 context,
-                ResetPasswordView(),
+                const ResetPasswordView(),
                 type: NavigatorType.push,
               );
               cubit.emailController.clear();
             } else if (state is ForgetPasswordError) {
               AppToast.error(context, state.error);
-              cubit.emailController.clear();
             }
           },
           builder: (context, state) {
-            ForgetCubit forgetCubit = ForgetCubit.get(context);
+            final cubit = ForgetCubit.get(context);
             return Form(
-              key: forgetCubit.formkay,
-              child: Padding(
-                padding: EdgeInsets.all(24.w),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Forgot your password?",
-                      style: TextStyle(
-                        fontSize: 22.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    SizedBox(height: 12.h),
-
-                    Text(
-                      "Enter your email and we’ll send you a reset code",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14.sp, color: Colors.grey),
-                    ),
-
-                    SizedBox(height: 32.h),
-
-                    CustomTextformfaild(
-                      controller: forgetCubit.emailController,
-                      hintText: "Email",
-                      keyboardType: TextInputType.emailAddress,
-                      obscureText: false,
-                      prefixIcon: Icon(Icons.email, color: AppColors.primary),
-                      validator: AppValidator.emailValidator,
-                    ),
-
-                    SizedBox(height: 24.h),
-
-                    state is ForgetPasswordLoading
-                        ? const CircularProgressIndicator()
-                        : CustomButton(
-                          text: "Send Code",
-                          color: AppColors.primary,
-                          onPressed: forgetCubit.forgetPassword,
+              key: cubit.formkay,
+              child: AnimationLimiter(
+                child: ListView(
+                  padding: EdgeInsets.symmetric(horizontal: 24.w),
+                  physics: const BouncingScrollPhysics(),
+                  children: AnimationConfiguration.toStaggeredList(
+                    duration: const Duration(milliseconds: 600),
+                    childAnimationBuilder:
+                        (widget) => SlideAnimation(
+                          verticalOffset: 30.0,
+                          child: FadeInAnimation(child: widget),
                         ),
-                  ],
+                    children: [
+                      SizedBox(height: 40.h),
+
+                      // الهوية البصرية (Khotwa)
+                      Center(
+                        child: ShaderMask(
+                          shaderCallback:
+                              (bounds) => brandGradient.createShader(bounds),
+                          child: Text(
+                            'Khotwa',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 42.sp,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -1.0,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      SizedBox(height: 40.h),
+
+                      Text(
+                        "Forgot Password? 🔑",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 24.sp,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF1E293B),
+                        ),
+                      ),
+
+                      SizedBox(height: 12.h),
+
+                      Text(
+                        "No worries! Enter your email and we'll send you a verification code to reset your password.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: Colors.grey.shade600,
+                          height: 1.5,
+                        ),
+                      ),
+
+                      SizedBox(height: 40.h),
+
+                      // حقل البريد الإلكتروني المودرن
+                      CustomTextformfaild(
+                        controller: cubit.emailController,
+                        hintText: "Enter your email",
+                        keyboardType: TextInputType.emailAddress,
+                        obscureText: false,
+                        prefixIcon: Icon(
+                          Icons.alternate_email_rounded,
+                          color: AppColors.primary,
+                          size: 22.sp,
+                        ),
+                        validator: AppValidator.emailValidator,
+                      ),
+
+                      SizedBox(height: 32.h),
+
+                      // زرار الإرسال بستايل البراند
+                      state is ForgetPasswordLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : Container(
+                            decoration: BoxDecoration(
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withOpacity(0.3),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
+                            ),
+                            child: CustomButton(
+                              text: "Send Reset Code",
+                              onPressed: cubit.forgetPassword,
+                            ),
+                          ),
+
+                      SizedBox(height: 20.h),
+
+                      // زرار العودة للـ Login بشكل بسيط
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(
+                          "Back to Login",
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
