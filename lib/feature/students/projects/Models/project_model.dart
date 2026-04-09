@@ -46,15 +46,20 @@ class MyProjectModel {
       doctorPhone: json['doctorPhone'],
       teamName: json['teamName'],
       teamCode: json['teamCode'],
-      technologies: List<String>.from(json['technologies'] ?? []),
+      technologies:
+          json['technologies'] != null
+              ? List<String>.from(json['technologies'])
+              : [],
       teamMembers:
           (json['teamMembers'] as List?)
               ?.map((e) => TeamMember.fromJson(e))
-              .toList(),
+              .toList() ??
+          [],
       files:
           (json['files'] as List?)
               ?.map((e) => ProjectFile.fromJson(e))
-              .toList(),
+              .toList() ??
+          [],
     );
   }
 }

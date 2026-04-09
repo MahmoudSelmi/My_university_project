@@ -84,4 +84,10 @@ class DioHelper {
       ),
     );
   }
+
+  static Future<Object?> postData({
+    required String url,
+    required FormData data,
+    required String token,
+  }) async {}
 }
