@@ -1,4 +1,4 @@
-import 'package:auth_slmi/feature/students/projects/Views/UploadProjectScreen.dart';
+import 'package:auth_slmi/feature/students/projects/Views/MyProjectDetailsView.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
@@ -15,11 +15,15 @@ class MyProjectDetailsView extends StatelessWidget {
       child: Scaffold(
         body: BlocBuilder<MyProjectCubit, MyProjectState>(
           builder: (context, state) {
-            if (state is MyProjectLoading)
+            if (state is MyProjectLoading) {
               return const Center(child: CircularProgressIndicator());
-            if (state is MyProjectError) return Center(child: Text(state.err));
-            if (state is MyProjectSuccess)
+            }
+            if (state is MyProjectError) {
+              return Center(child: Text(state.err));
+            }
+            if (state is MyProjectSuccess) {
               return _buildBody(context, state.model);
+            }
             return const SizedBox();
           },
         ),
@@ -128,7 +132,7 @@ class MyProjectDetailsView extends StatelessWidget {
     );
   }
 
-  // --- ميثودز الـ UI المساعدة (التي تجلب البيانات القديمة) ---
+  // --- UI Helper Methods ---
 
   Widget _buildStatusCard(BuildContext context, MyProjectModel model) {
     return Container(
