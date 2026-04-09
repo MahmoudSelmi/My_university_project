@@ -1,7 +1,7 @@
 import 'package:auth_slmi/feature/students/Home/Views/HomeScreen.dart';
 import 'package:auth_slmi/feature/students/projects/Views/my_project_screen.dart';
 import 'package:auth_slmi/feature/students/profile/Views/profile_screen.dart';
-import 'package:auth_slmi/feature/students/previous_projects_screen/previous_projects_screen.dart';
+import 'package:auth_slmi/feature/students/previous_projects_screen/Views/previous_projects_screen.dart';
 import 'package:auth_slmi/feature/students/team/Views/teams_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

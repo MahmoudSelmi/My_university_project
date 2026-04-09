@@ -1,4 +1,7 @@
 import 'package:auth_slmi/core/helper/CacheHelper.dart';
+// تأكد من صحة هذا الـ Import حسب مكان الفولدر عندك
+import 'package:auth_slmi/feature/students/profile/Views/customer_service_view.dart';
+import 'package:auth_slmi/feature/students/profile/Views/egyptian_bot_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
@@ -9,7 +12,6 @@ import 'package:auth_slmi/feature/auth/rest_pass/views/rest_pass_view.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
-
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
@@ -26,20 +28,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     end: Alignment.bottomRight,
     colors: [Color(0xFF6366F1), Color(0xFFA855F7), Color(0xFFEC4899)],
   );
-
-  Future<void> _logout(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('access_token');
-    await prefs.remove('refresh_token');
-    if (!mounted) return;
-    _showModernSnackBar(context, "Logged out successfully!", true);
-    await Future.delayed(const Duration(milliseconds: 600));
-    MyNavigator.goTo(
-      context,
-      const LoginView(),
-      type: NavigatorType.pushAndRemoveUntil,
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +47,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               _buildMainProfileCard(),
               const SizedBox(height: 25),
-
               _buildSectionTitle('Academic Information'),
               const SizedBox(height: 15),
               _infoCard(
@@ -72,11 +59,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 "Software Engineering",
                 Icons.account_tree_rounded,
               ),
-              const SizedBox(height: 25),
 
+              const SizedBox(height: 25),
               _buildSectionTitle('Settings & Security'),
               const SizedBox(height: 15),
-              // زرار الدارك مود
+
+              // Dark Mode
               BlocBuilder<ThemeCubit, ThemeMode>(
                 builder: (context, themeMode) {
                   bool isDark = themeMode == ThemeMode.dark;
@@ -95,6 +83,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 },
               ),
               const SizedBox(height: 12),
+
+              // Change Password
               _buildSecurityOption(
                 title: "Change Password",
                 subtitle: "Update your security credentials",
@@ -106,8 +96,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       type: NavigatorType.push,
                     ),
               ),
-              const SizedBox(height: 25),
+              const SizedBox(height: 12),
 
+              // Customer Service (تم الإصلاح هنا)
+              _buildSecurityOption(
+                title: "Customer Service",
+                subtitle: "Contact us anytime",
+                icon: Icons.support_agent,
+                onTap:
+                    () => MyNavigator.goTo(
+                      context,
+                      const CustomerServiceView(), // التأكد من كتابة الاسم صحيحاً
+                      type: NavigatorType.push,
+                    ),
+              ),
+
+              // ... داخل ListView في صفحة البروفايل تحت "Customer Service" ...
+              const SizedBox(height: 12),
+
+              // زرار الشات بوت الجديد
+              _buildSecurityOption(
+                title: "AI Bot",
+                subtitle: "دردش مع البوت  بتاعنا",
+                icon: Icons.auto_awesome_rounded, // أيقونة ذكاء اصطناعي
+                onTap:
+                    () => MyNavigator.goTo(
+                      context,
+                      const EgyptianBotView(), // الصفحة اللي عملناها فوق
+                      type: NavigatorType.push,
+                    ),
+              ),
+              const SizedBox(height: 25),
               _buildSectionTitle('Edit Profile Details'),
               const SizedBox(height: 15),
               _buildEditableCard(
@@ -138,6 +157,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  // --- Reusable Widgets (No changes here) ---
+
   Widget _buildThemeOption({
     required String title,
     required String subtitle,
@@ -166,7 +187,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(
           subtitle,
-          style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+          style: const TextStyle(fontSize: 12, color: Colors.grey),
         ),
         trailing: Switch.adaptive(
           value: value,
@@ -192,6 +213,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
       child: ListTile(
+        onTap: onTap,
         contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
         leading: Container(
           padding: const EdgeInsets.all(10),
@@ -204,43 +226,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(
           subtitle,
-          style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+          style: const TextStyle(fontSize: 12, color: Colors.grey),
         ),
         trailing: const Icon(
           Icons.arrow_forward_ios_rounded,
           size: 14,
           color: Colors.grey,
         ),
-        onTap: onTap,
-      ),
-    );
-  }
-
-  void _showModernSnackBar(BuildContext context, String msg, bool isSuccess) {
-    ScaffoldMessenger.of(context).removeCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(
-              isSuccess ? Icons.check_circle : Icons.error,
-              color: Colors.white,
-              size: 20,
-            ),
-            const SizedBox(width: 10),
-            Flexible(
-              child: Text(
-                msg,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor:
-            isSuccess ? Colors.green.shade600 : Colors.red.shade600,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        margin: const EdgeInsets.all(20),
       ),
     );
   }
@@ -579,21 +571,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
+
+  Future<void> _logout(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('access_token');
+    await prefs.remove('refresh_token');
+    if (!mounted) return;
+    _showModernSnackBar(context, "Logged out successfully!", true);
+    await Future.delayed(const Duration(milliseconds: 600));
+    MyNavigator.goTo(
+      context,
+      const LoginView(),
+      type: NavigatorType.pushAndRemoveUntil,
+    );
+  }
+
+  void _showModernSnackBar(BuildContext context, String msg, bool isSuccess) {
+    ScaffoldMessenger.of(context).removeCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              isSuccess ? Icons.check_circle : Icons.error,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Flexible(
+              child: Text(
+                msg,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor:
+            isSuccess ? Colors.green.shade600 : Colors.red.shade600,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        margin: const EdgeInsets.all(20),
+      ),
+    );
+  }
 }
 
 class ThemeCubit extends Cubit<ThemeMode> {
   ThemeCubit() : super(ThemeMode.light) {
     _loadTheme();
   }
-
   void toggleTheme(bool isDark) {
-    final mode = isDark ? ThemeMode.dark : ThemeMode.light;
     CacheHelper.saveData(key: 'isDark', value: isDark);
-    emit(mode);
+    emit(isDark ? ThemeMode.dark : ThemeMode.light);
   }
 
   void _loadTheme() {
-    // بيقرأ الحالة المسيفة من الـ Cache عشان ميرجعش أبيض لوحده
     bool isDark = CacheHelper.getData(key: 'isDark') ?? false;
     emit(isDark ? ThemeMode.dark : ThemeMode.light);
   }

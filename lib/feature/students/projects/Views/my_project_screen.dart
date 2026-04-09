@@ -106,16 +106,14 @@ class MyProjectDetailsView extends StatelessWidget {
                   if (model.teamMembers != null &&
                       model.teamMembers!.isNotEmpty) ...[
                     _buildSectionTitle(context, "Team Members"),
-                    ...model.teamMembers!
-                        .map((m) => _buildMemberTile(context, m))
-                        .toList(),
+                    ...model.teamMembers!.map(
+                      (m) => _buildMemberTile(context, m),
+                    ),
                   ],
 
                   _buildSectionTitle(context, "Project Documents"),
                   if (model.files != null && model.files!.isNotEmpty)
-                    ...model.files!
-                        .map((f) => _buildFileTile(context, f))
-                        .toList()
+                    ...model.files!.map((f) => _buildFileTile(context, f))
                   else
                     const Padding(
                       padding: EdgeInsets.all(16.0),

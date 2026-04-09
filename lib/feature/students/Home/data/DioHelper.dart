@@ -6,7 +6,7 @@ class DioHelper {
   static init() {
     dio = Dio(
       BaseOptions(
-        baseUrl: 'http://50.19.27.194:3000/api/v1/',
+        baseUrl: 'http://34.229.97.10:3000/api/v1/',
         receiveDataWhenStatusError: true,
         connectTimeout: const Duration(seconds: 30),
         receiveTimeout: const Duration(seconds: 30),
@@ -89,5 +89,7 @@ class DioHelper {
     required String url,
     required FormData data,
     required String token,
-  }) async {}
+  }) async {
+    return null;
+  }
 }

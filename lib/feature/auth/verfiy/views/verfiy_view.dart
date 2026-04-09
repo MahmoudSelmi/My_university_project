@@ -51,10 +51,11 @@ class _VerifyViewState extends State<VerifyView> {
         timer.cancel();
         if (mounted) setState(() {});
       } else {
-        if (mounted)
+        if (mounted) {
           setState(() {
             _remainingSeconds--;
           });
+        }
       }
     });
   }
