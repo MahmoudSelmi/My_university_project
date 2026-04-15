@@ -50,6 +50,8 @@ dependencies:
   flutter_localization: ^0.4.0
   url_launcher: ^6.3.2
   speech_to_text: ^7.3.0
+  curved_navigation_bar: ^1.0.6
+  animations: ^2.1.2
 
 dev_dependencies:
   flutter_test:

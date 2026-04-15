@@ -21,6 +21,9 @@ class ProjectModel {
     this.technologies,
     String? universityName,
     String? teamName,
+    required String id,
+    required String title,
+    required String description,
   });
 
   factory ProjectModel.fromJson(Map<String, dynamic> json) {
@@ -37,6 +40,13 @@ class ProjectModel {
           json['technologies'] != null
               ? List<String>.from(json['technologies'])
               : [],
+      id: '',
+      title: '',
+      description: '',
     );
   }
+
+  String get description => projectDescription ?? '';
+
+  String get title => projectTitle ?? '';
 }

@@ -77,6 +77,9 @@ class HomeCubit extends Cubit<HomeState> {
             "https://res.cloudinary.com/dgfhgkun1/image/upload/v1770728507/user-profiles/r3e5yx8ifbkf5cuatgel.jpg",
 
         technologies: ["React", "Node.js", "MongoDB"],
+        id: '',
+        title: '',
+        description: '',
       ),
 
       ProjectModel(
@@ -98,6 +101,9 @@ class HomeCubit extends Cubit<HomeState> {
             "https://res.cloudinary.com/dgfhgkun1/image/upload/v1770728507/user-profiles/r3e5yx8ifbkf5cuatgel.jpg",
 
         technologies: ["MongoDB", "React", "Node.js"],
+        id: '',
+        title: '',
+        description: '',
       ),
     ];
 

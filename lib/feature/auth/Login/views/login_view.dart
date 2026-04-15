@@ -6,6 +6,9 @@ import 'package:auth_slmi/core/widgts/app_snkparr.dart';
 import 'package:auth_slmi/core/widgts/custom_buttom.dart';
 import 'package:auth_slmi/core/widgts/custom_textformfiled.dart';
 import 'package:auth_slmi/feature/auth/forget_pass/views/forget_pass_view.dart';
+import 'package:auth_slmi/feature/doctor/home/views/doctor_home_view.dart';
+// استورد صفحة الدكتور هنا
+// import 'package:auth_slmi/feature/doctor/views/doctor_home.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -29,17 +32,27 @@ class LoginView extends StatelessWidget {
     return BlocProvider(
       create: (context) => LoginCubit(),
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC), // خلفية هادية ومريحة
+        backgroundColor: const Color(0xFFF8FAFC),
         body: BlocConsumer<LoginCubit, LoginState>(
           listener: (context, state) {
             final cubit = LoginCubit.get(context);
             if (state is LoginSuccess) {
-              MyNavigator.goTo(
-                context,
-                const StudentMainLayout(),
-                type: NavigatorType.pushAndRemoveUntil,
-              );
-              AppToast.success(context, "Welcome Back!");
+              // --- التعديل هنا للتفريق بين زياد وأي مستخدم تاني ---
+              if (cubit.emailController.text.trim() == "Zeyad") {
+                MyNavigator.goTo(
+                  context,
+                  const DoctorHomeView(), // التوجه لصفحة الدكتور
+                  type: NavigatorType.pushAndRemoveUntil,
+                );
+                AppToast.success(context, "Welcome Dr. Zeyad!");
+              } else {
+                MyNavigator.goTo(
+                  context,
+                  const StudentMainLayout(),
+                  type: NavigatorType.pushAndRemoveUntil,
+                );
+                AppToast.success(context, "Welcome Back!");
+              }
               cubit.clearControllers();
             }
             if (state is LoginError) {
@@ -63,8 +76,6 @@ class LoginView extends StatelessWidget {
                         ),
                     children: [
                       SizedBox(height: 100.h),
-
-                      // كلمة "Khotwa" الاحترافية بدلاً من اللوجو
                       Center(
                         child: ShaderMask(
                           shaderCallback:
@@ -80,7 +91,6 @@ class LoginView extends StatelessWidget {
                           ),
                         ),
                       ),
-
                       SizedBox(height: 8.h),
                       Center(
                         child: Text(
@@ -92,26 +102,25 @@ class LoginView extends StatelessWidget {
                           ),
                         ),
                       ),
-
                       SizedBox(height: 50.h),
-
-                      // حقل البريد الإلكتروني بتصميم أنضف
                       CustomTextformfaild(
                         controller: cubit.emailController,
                         obscureText: false,
                         keyboardType: TextInputType.emailAddress,
-                        hintText: "Email Address",
-                        validator: AppValidator.emailValidator,
+                        hintText: "Email Address / Username",
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your email or username';
+                          }
+                          return null;
+                        },
                         prefixIcon: Icon(
                           Icons.alternate_email_rounded,
                           color: AppColors.primary,
                           size: 20.sp,
                         ),
                       ),
-
                       SizedBox(height: 18.h),
-
-                      // حقل كلمة السر
                       CustomTextformfaild(
                         controller: cubit.passwordController,
                         obscureText: cubit.isPassword,
@@ -133,10 +142,7 @@ class LoginView extends StatelessWidget {
                           ),
                         ),
                       ),
-
                       SizedBox(height: 12.h),
-
-                      // نسيت كلمة السر
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
@@ -156,10 +162,7 @@ class LoginView extends StatelessWidget {
                           ),
                         ),
                       ),
-
                       SizedBox(height: 30.h),
-
-                      // زرار الدخول بتأثير التحميل
                       state is LoginLoading
                           ? const Center(child: CircularProgressIndicator())
                           : Container(
@@ -177,10 +180,7 @@ class LoginView extends StatelessWidget {
                               onPressed: () => cubit.onLoginPressed(),
                             ),
                           ),
-
                       SizedBox(height: 40.h),
-
-                      // خيار التسجيل الجديد
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [

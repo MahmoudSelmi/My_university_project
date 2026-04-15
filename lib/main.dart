@@ -1,4 +1,6 @@
 import 'package:auth_slmi/core/BottomNavState/BottomNavCubit.dart';
+import 'package:auth_slmi/core/BottomNavState/StudentMainLayout.dart'; // تأكد من المسار
+import 'package:auth_slmi/feature/doctor/DoctorMainLayout/Views/DoctorMainLayout.dart';
 import 'package:auth_slmi/core/helper/CacheHelper.dart';
 import 'package:auth_slmi/feature/students/Home/data/DioHelper.dart';
 import 'package:auth_slmi/feature/students/Home/manager/home_cubit.dart';
@@ -13,22 +15,35 @@ void main() async {
   await CacheHelper.init();
   await DioHelper.init();
 
-  runApp(const MyApp());
+  Widget widget;
+  bool? isLoggedIn = CacheHelper.getData(key: 'isLoggedIn');
+  String? userRole = CacheHelper.getData(key: 'userRole');
+
+  if (isLoggedIn == true) {
+    if (userRole == 'doctor') {
+      widget = const DoctorMainLayout(); // لو دكتور يدخل هنا
+    } else {
+      widget = const StudentMainLayout(); // لو طالب يدخل هنا
+    }
+  } else {
+    widget = const SplachView(); // لو أول مرة يفتح السبلاش العادية
+  }
+
+  runApp(MyApp(startWidget: widget));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final Widget startWidget;
+  const MyApp({super.key, required this.startWidget});
 
   @override
   Widget build(BuildContext context) {
-    // الترتيب الصح: الـ Providers أولاً
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (context) => ThemeCubit()),
         BlocProvider(create: (context) => BottomNavCubit()),
         BlocProvider(create: (context) => HomeCubit()..getHomeProjects()),
       ],
-      // الـ BlocBuilder لازم يكون جوه الـ MultiBlocProvider عشان يشوف الـ ThemeCubit
       child: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, themeMode) {
           return ScreenUtilInit(
@@ -38,7 +53,7 @@ class MyApp extends StatelessWidget {
             builder: (context, child) {
               return MaterialApp(
                 debugShowCheckedModeBanner: false,
-                themeMode: themeMode, // ربط الثيم بالكيوبيت
+                themeMode: themeMode,
                 theme: ThemeData(
                   brightness: Brightness.light,
                   scaffoldBackgroundColor: const Color(0xFFF8FAFC),
@@ -51,7 +66,8 @@ class MyApp extends StatelessWidget {
                   primaryColor: const Color(0xFF6366F1),
                   cardColor: const Color(0xFF1E293B),
                 ),
-                home: const SplachView(),
+                // هتاخد الـ startWidget اللي جاية من الـ main
+                home: startWidget,
               );
             },
           );

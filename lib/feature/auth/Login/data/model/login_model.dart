@@ -4,7 +4,13 @@ class LoginModel {
   Data? data;
   String? timestamp;
 
-  LoginModel({this.success, this.message, this.data, this.timestamp});
+  LoginModel({
+    this.success,
+    this.message,
+    this.data,
+    this.timestamp,
+    required bool status,
+  });
 
   LoginModel.fromJson(Map<String, dynamic> json) {
     success = json['success'];
