@@ -29,20 +29,23 @@ class LoginCubit extends Cubit<LoginState> {
     String password = passwordController.text.trim();
 
     // --- الحالة الخاصة للدكتور Zeyad (الاحترافية النهائية) ---
-    if (email == "Zeyad" && password == "123456789") {
+    if (email == "mohmmedyaser94@gmail.com" && password == "123456789") {
       emit(LoginLoading());
 
       // حفظ البيانات في الكاش باستخدام الـ CacheHelper بتاعك
       await CacheHelper.saveData(key: 'isLoggedIn', value: true);
       await CacheHelper.saveData(key: 'userRole', value: 'doctor');
-      await CacheHelper.saveData(key: 'userName', value: 'Zeyad');
+      await CacheHelper.saveData(
+        key: 'userName',
+        value: 'mohmmedyaser94@gmail.com',
+      );
 
       // تأخير بسيط لمحاكاة العملية
       await Future.delayed(const Duration(milliseconds: 500));
 
       emit(
         LoginSuccess(
-          message: LoginModel(status: true, message: "Welcome Dr. Zeyad"),
+          message: LoginModel(status: true, message: "Welcome Dr. Mohamed"),
         ),
       );
       return; // توقف هنا عشان ميروحش للـ API

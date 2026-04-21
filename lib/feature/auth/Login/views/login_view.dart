@@ -6,7 +6,7 @@ import 'package:auth_slmi/core/widgts/app_snkparr.dart';
 import 'package:auth_slmi/core/widgts/custom_buttom.dart';
 import 'package:auth_slmi/core/widgts/custom_textformfiled.dart';
 import 'package:auth_slmi/feature/auth/forget_pass/views/forget_pass_view.dart';
-import 'package:auth_slmi/feature/doctor/home/views/doctor_home_view.dart';
+import 'package:auth_slmi/feature/doctor/DoctorMainLayout/Views/DoctorMainLayout.dart';
 // استورد صفحة الدكتور هنا
 // import 'package:auth_slmi/feature/doctor/views/doctor_home.dart';
 import 'package:flutter/material.dart';
@@ -38,13 +38,14 @@ class LoginView extends StatelessWidget {
             final cubit = LoginCubit.get(context);
             if (state is LoginSuccess) {
               // --- التعديل هنا للتفريق بين زياد وأي مستخدم تاني ---
-              if (cubit.emailController.text.trim() == "Zeyad") {
+              if (cubit.emailController.text.trim() ==
+                  "mohmmedyaser94@gmail.com") {
                 MyNavigator.goTo(
                   context,
-                  const DoctorHomeView(), // التوجه لصفحة الدكتور
+                  const DoctorMainLayout(), // التوجه لصفحة الدكتور
                   type: NavigatorType.pushAndRemoveUntil,
                 );
-                AppToast.success(context, "Welcome Dr. Zeyad!");
+                AppToast.success(context, "Welcome Dr. Mohamed!");
               } else {
                 MyNavigator.goTo(
                   context,

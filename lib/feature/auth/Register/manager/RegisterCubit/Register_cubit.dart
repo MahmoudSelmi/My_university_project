@@ -39,7 +39,7 @@ class RegisterCubit extends Cubit<RegisterState> {
   void onRegisterPressed() async {
     if (!formKey.currentState!.validate()) return;
 
-    if (selectedUniversityId == null) {
+    /*if (selectedUniversityId == null) {
       emit(RegisterError(error: "Please select university"));
       return;
     }
@@ -47,7 +47,7 @@ class RegisterCubit extends Cubit<RegisterState> {
     if (selectedDepartmentId == null) {
       emit(RegisterError(error: "Please select department"));
       return;
-    }
+    }*/
 
     emit(RegisterLoading());
 
@@ -57,8 +57,8 @@ class RegisterCubit extends Cubit<RegisterState> {
       email: emailController.text,
       password: passwordController.text,
       universityCode: universityCodeController.text,
-      universityId: selectedUniversityId!,
-      departmentId: selectedDepartmentId!,
+      universityId: selectedUniversityId,
+      departmentId: selectedDepartmentId,
     );
 
     result.fold(

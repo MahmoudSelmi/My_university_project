@@ -80,6 +80,12 @@ class HomeCubit extends Cubit<HomeState> {
         id: '',
         title: '',
         description: '',
+        desc: '',
+        teamLeader: '',
+        status: '',
+        leaderName: '',
+        year: '',
+        members: [],
       ),
 
       ProjectModel(
@@ -104,6 +110,12 @@ class HomeCubit extends Cubit<HomeState> {
         id: '',
         title: '',
         description: '',
+        desc: '',
+        teamLeader: '',
+        status: '',
+        leaderName: '',
+        year: '',
+        members: [],
       ),
     ];
 

@@ -1,8 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../Manager/MyProjectCubit.dart';
+import 'package:http/http.dart' as http;
 
 class UploadProjectScreen extends StatefulWidget {
   const UploadProjectScreen({super.key});
@@ -15,6 +15,7 @@ class _UploadProjectScreenState extends State<UploadProjectScreen> {
   final titleController = TextEditingController();
   File? selectedFile;
   String? fileName;
+  bool isUploading = false; // لمتابعة حالة الرفع
 
   final LinearGradient meshGradient = const LinearGradient(
     begin: Alignment.topLeft,
@@ -22,50 +23,90 @@ class _UploadProjectScreenState extends State<UploadProjectScreen> {
     colors: [Color(0xFF6366F1), Color(0xFFA855F7), Color(0xFFEC4899)],
   );
 
+  // ميثود الرفع الفعلي على هوست افتراضي (file.io)
+  Future<void> _handleUpload() async {
+    if (selectedFile == null) return;
+
+    setState(() => isUploading = true);
+
+    try {
+      // بنستخدم هوست file.io للتجربة الفعلية
+      var request = http.MultipartRequest('POST', Uri.parse('https://file.io'));
+
+      // إضافة الملف للطلب
+      request.files.add(
+        await http.MultipartFile.fromPath('file', selectedFile!.path),
+      );
+
+      // إرسال الطلب
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        var responseData = json.decode(response.body);
+        String fileLink = responseData['link']; // الرابط اللي اترفع عليه الملف
+
+        _showSnackBar("تم رفع الملف بنجاح! ✅", Colors.green);
+        print("File Uploaded to: $fileLink");
+
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) Navigator.pop(context);
+        });
+      } else {
+        _showSnackBar("فشل الرفع، حاول مرة أخرى ❌", Colors.red);
+      }
+    } catch (e) {
+      _showSnackBar("حدث خطأ في الشبكة ⚠️", Colors.orange);
+    } finally {
+      if (mounted) setState(() => isUploading = false);
+    }
+  }
+
+  void _showSnackBar(String message, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
         slivers: [
-          // Header Creative مع Gradient
           SliverAppBar(
             expandedHeight: 180,
             pinned: true,
-            backgroundColor: const Color(0xFF6366F1),
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
-              title: const Text(
-                "Upload Assets",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 1.2,
-                ),
-              ),
+              title: const Text("Upload Assets"),
               background: Container(
                 decoration: BoxDecoration(gradient: meshGradient),
-                child: Center(
-                  child: Icon(
-                    Icons.cloud_upload_outlined,
-                    size: 80,
-                    color: Colors.white.withOpacity(0.2),
-                  ),
+                child: Icon(
+                  Icons.cloud_upload,
+                  size: 80,
+                  color: Colors.white.withOpacity(0.2),
                 ),
               ),
             ),
           ),
-
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSectionTitle("Document Details"),
+                  const Text(
+                    "Document Details",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 16),
-
-                  // كارت إدخال البيانات
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -75,7 +116,6 @@ class _UploadProjectScreenState extends State<UploadProjectScreen> {
                         BoxShadow(
                           color: Colors.black.withOpacity(0.05),
                           blurRadius: 20,
-                          offset: const Offset(0, 10),
                         ),
                       ],
                     ),
@@ -83,12 +123,8 @@ class _UploadProjectScreenState extends State<UploadProjectScreen> {
                       children: [
                         TextField(
                           controller: titleController,
-                          style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyLarge?.color,
-                          ),
                           decoration: InputDecoration(
                             labelText: "File Title",
-                            hintText: "e.g. Final Documentation",
                             prefixIcon: const Icon(Icons.title),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(15),
@@ -96,26 +132,16 @@ class _UploadProjectScreenState extends State<UploadProjectScreen> {
                           ),
                         ),
                         const SizedBox(height: 25),
-
-                        // منطقة اختيار الملف (Creative)
                         InkWell(
-                          onTap: _pickFile,
+                          onTap: isUploading ? null : _pickFile,
                           child: Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 30,
-                              horizontal: 16,
-                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 30),
                             decoration: BoxDecoration(
-                              color: Theme.of(
-                                context,
-                              ).primaryColor.withOpacity(0.05),
+                              color: const Color(0xFF6366F1).withOpacity(0.05),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: Theme.of(
-                                  context,
-                                ).primaryColor.withOpacity(0.2),
-                                style: BorderStyle.solid,
+                                color: const Color(0xFF6366F1).withOpacity(0.2),
                               ),
                             ),
                             child: Column(
@@ -134,24 +160,8 @@ class _UploadProjectScreenState extends State<UploadProjectScreen> {
                                 Text(
                                   selectedFile == null
                                       ? "Tap to Select Document"
-                                      : fileName ?? "File Selected",
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    color:
-                                        Theme.of(
-                                          context,
-                                        ).textTheme.bodyMedium?.color,
-                                  ),
+                                      : fileName!,
                                 ),
-                                if (selectedFile != null)
-                                  const Text(
-                                    "Tap to change file",
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
                               ],
                             ),
                           ),
@@ -159,55 +169,8 @@ class _UploadProjectScreenState extends State<UploadProjectScreen> {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 40),
-
-                  // زر التأكيد والرفع
-                  SizedBox(
-                    width: double.infinity,
-                    height: 60,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: selectedFile != null ? meshGradient : null,
-                        color:
-                            selectedFile == null
-                                ? Colors.grey.withOpacity(0.3)
-                                : null,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow:
-                            selectedFile != null
-                                ? [
-                                  BoxShadow(
-                                    color: const Color(
-                                      0xFFEC4899,
-                                    ).withOpacity(0.3),
-                                    blurRadius: 15,
-                                    offset: const Offset(0, 8),
-                                  ),
-                                ]
-                                : [],
-                      ),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        onPressed: selectedFile != null ? _uploadAction : null,
-                        child: const Text(
-                          "CONFIRM & UPLOAD",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.1,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                  _buildUploadButton(),
                 ],
               ),
             ),
@@ -217,7 +180,36 @@ class _UploadProjectScreenState extends State<UploadProjectScreen> {
     );
   }
 
-  // ميثود اختيار الملف
+  Widget _buildUploadButton() {
+    bool canUpload = selectedFile != null && !isUploading;
+    return Container(
+      width: double.infinity,
+      height: 60,
+      decoration: BoxDecoration(
+        gradient: canUpload ? meshGradient : null,
+        color: !canUpload ? Colors.grey.withOpacity(0.3) : null,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+        ),
+        onPressed: canUpload ? _handleUpload : null,
+        child:
+            isUploading
+                ? const CircularProgressIndicator(color: Colors.white)
+                : const Text(
+                  "CONFIRM & UPLOAD",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+      ),
+    );
+  }
+
   Future<void> _pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
     if (result != null) {
@@ -226,38 +218,5 @@ class _UploadProjectScreenState extends State<UploadProjectScreen> {
         fileName = result.files.single.name;
       });
     }
-  }
-
-  // ميثود الرفع
-  void _uploadAction() {
-    if (selectedFile != null) {
-      // بننادي الكيوبيت لرفع المشروع
-      context.read<MyProjectCubit>().uploadNewProject(
-        title:
-            titleController.text.isEmpty
-                ? (fileName ?? "Untitled")
-                : titleController.text,
-        file: selectedFile!,
-      );
-      Navigator.pop(context); // الرجوع بعد الرفع
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Uploading in progress..."),
-          backgroundColor: Color(0xFF6366F1),
-        ),
-      );
-    }
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-        color: Theme.of(context).textTheme.bodyLarge?.color,
-      ),
-    );
   }
 }

@@ -1,18 +1,25 @@
-import '../../../../core/Models/project_model.dart';
+import 'package:auth_slmi/core/Models/project_model.dart';
 
-abstract class DoctorStates {}
+abstract class DoctorHomeStates {}
 
-class DoctorHomeInitial extends DoctorStates {}
+class DoctorHomeInitial extends DoctorHomeStates {}
 
-class DoctorLoading extends DoctorStates {}
+class DoctorHomeLoading extends DoctorHomeStates {}
 
-class DoctorSuccess extends DoctorStates {
+class DoctorHomeSuccess extends DoctorHomeStates {
   final List<ProjectModel> projects;
-  final Map<String, dynamic>? stats; // علامة الاستفهام دي حلت الإيرور
-  DoctorSuccess(this.projects, this.stats);
+  final Map<String, dynamic> stats;
+
+  DoctorHomeSuccess(
+    this.projects,
+    this.stats, {
+    required List<dynamic> pendingRequests,
+  });
+
+  Object? get pendingRequests => null;
 }
 
-class DoctorError extends DoctorStates {
+class DoctorHomeError extends DoctorHomeStates {
   final String message;
-  DoctorError(this.message);
+  DoctorHomeError(this.message);
 }

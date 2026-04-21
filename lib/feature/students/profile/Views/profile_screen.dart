@@ -1,10 +1,12 @@
-import 'package:auth_slmi/core/helper/CacheHelper.dart';
-// تأكد من صحة هذا الـ Import حسب مكان الفولدر عندك
+import 'dart:io'; // مهم جداً عشان التعامل مع الملفات
+import 'package:auth_slmi/core/Theme%20Option/ThemeCubit.dart';
 import 'package:auth_slmi/feature/students/profile/Views/customer_service_view.dart';
 import 'package:auth_slmi/feature/students/profile/Views/egyptian_bot_view.dart';
+import 'package:auth_slmi/feature/students/profile/Views/SupervisionRequestPage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:image_picker/image_picker.dart'; // مكتبة اختيار الصور
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:auth_slmi/core/helper/app_nav.dart';
 import 'package:auth_slmi/feature/auth/Login/views/login_view.dart';
@@ -23,11 +25,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
   );
   final TextEditingController _phoneController = TextEditingController();
 
+  // 1. تعريف متغير الصورة والمكتبة
+  File? _imageFile;
+  final ImagePicker _picker = ImagePicker();
+
   final LinearGradient meshGradient = const LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [Color(0xFF6366F1), Color(0xFFA855F7), Color(0xFFEC4899)],
   );
+
+  // 2. ميثود اختيار الصورة من المعرض
+  Future<void> _pickImage() async {
+    final XFile? pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80, // تقليل الحجم للحفاظ على الأداء
+    );
+
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,12 +79,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 "Software Engineering",
                 Icons.account_tree_rounded,
               ),
-
               const SizedBox(height: 25),
               _buildSectionTitle('Settings & Security'),
               const SizedBox(height: 15),
 
-              // Dark Mode
+              // Theme Option
               BlocBuilder<ThemeCubit, ThemeMode>(
                 builder: (context, themeMode) {
                   bool isDark = themeMode == ThemeMode.dark;
@@ -84,7 +103,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 12),
 
-              // Change Password
               _buildSecurityOption(
                 title: "Change Password",
                 subtitle: "Update your security credentials",
@@ -98,7 +116,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 12),
 
-              // Customer Service (تم الإصلاح هنا)
               _buildSecurityOption(
                 title: "Customer Service",
                 subtitle: "Contact us anytime",
@@ -106,26 +123,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onTap:
                     () => MyNavigator.goTo(
                       context,
-                      const CustomerServiceView(), // التأكد من كتابة الاسم صحيحاً
+                      const CustomerServiceView(),
                       type: NavigatorType.push,
                     ),
               ),
-
-              // ... داخل ListView في صفحة البروفايل تحت "Customer Service" ...
               const SizedBox(height: 12),
 
-              // زرار الشات بوت الجديد
               _buildSecurityOption(
-                title: "AI Bot",
-                subtitle: "دردش مع البوت  بتاعنا",
-                icon: Icons.auto_awesome_rounded, // أيقونة ذكاء اصطناعي
+                title: "Submit Graduation Project",
+                subtitle: "Send supervision request",
+                icon: Icons.upload_file,
                 onTap:
                     () => MyNavigator.goTo(
                       context,
-                      const EgyptianBotView(), // الصفحة اللي عملناها فوق
+                      const SupervisionRequestPage(),
                       type: NavigatorType.push,
                     ),
               ),
+              const SizedBox(height: 12),
+
+              _buildSecurityOption(
+                title: "AI Bot",
+                subtitle: "دردش مع البوت",
+                icon: Icons.auto_awesome_rounded,
+                onTap:
+                    () => MyNavigator.goTo(
+                      context,
+                      const EgyptianBotView(),
+                      type: NavigatorType.push,
+                    ),
+              ),
+
               const SizedBox(height: 25),
               _buildSectionTitle('Edit Profile Details'),
               const SizedBox(height: 15),
@@ -145,7 +173,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 hint: "Add Phone Number",
                 keyboardType: TextInputType.phone,
               ),
-
               const SizedBox(height: 40),
               _buildSaveButton(),
               const SizedBox(height: 15),
@@ -157,7 +184,112 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // --- Reusable Widgets (No changes here) ---
+  Widget _buildMainProfileCard() {
+    return Container(
+      padding: const EdgeInsets.all(25),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(35),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF6366F1).withOpacity(0.06),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Stack(
+            alignment: Alignment.bottomRight,
+            children: [
+              GestureDetector(
+                onTap: _pickImage, // 3. تشغيل اختيار الصورة عند الضغط
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    gradient: meshGradient,
+                    shape: BoxShape.circle,
+                  ),
+                  child: CircleAvatar(
+                    radius: 55,
+                    backgroundColor: Colors.white,
+                    // 4. عرض الصورة المختارة أو أيقونة افتراضية
+                    backgroundImage:
+                        _imageFile != null ? FileImage(_imageFile!) : null,
+                    child:
+                        _imageFile == null
+                            ? const Icon(
+                              Icons.person,
+                              size: 55,
+                              color: Color(0xFF6366F1),
+                            )
+                            : null,
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF6366F1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.camera_alt,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Text(
+            "Mahmoud Selmi",
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                "mahmoud.selmi.dev@gmail.com",
+                style: TextStyle(color: Colors.grey, fontSize: 13),
+              ),
+              const SizedBox(width: 5),
+              Icon(Icons.verified, color: Colors.blue.shade400, size: 14),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ... باقي الـ Widgets (AppBar, SectionTitle, InfoCard, EditableCard, الخ) تفضل زي ما هي بدون تغيير ...
+
+  PreferredSizeWidget _buildModernAppBar() {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      centerTitle: true,
+      title: ShaderMask(
+        shaderCallback: (bounds) => meshGradient.createShader(bounds),
+        child: const Text(
+          'Profile',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _buildThemeOption({
     required String title,
@@ -233,95 +365,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           size: 14,
           color: Colors.grey,
         ),
-      ),
-    );
-  }
-
-  PreferredSizeWidget _buildModernAppBar() {
-    return AppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      centerTitle: true,
-      title: ShaderMask(
-        shaderCallback: (bounds) => meshGradient.createShader(bounds),
-        child: const Text(
-          'Profile',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMainProfileCard() {
-    return Container(
-      padding: const EdgeInsets.all(25),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(35),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF6366F1).withOpacity(0.06),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Stack(
-            alignment: Alignment.bottomRight,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  gradient: meshGradient,
-                  shape: BoxShape.circle,
-                ),
-                child: const CircleAvatar(
-                  radius: 55,
-                  backgroundColor: Colors.white,
-                  child: Icon(Icons.person, size: 55, color: Color(0xFF6366F1)),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF6366F1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.camera_alt,
-                  color: Colors.white,
-                  size: 18,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Text(
-            "Mahmoud Selmi",
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).textTheme.bodyLarge?.color,
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                "Ma7moud.m.selmy1@gmail.com",
-                style: TextStyle(color: Colors.grey, fontSize: 13),
-              ),
-              const SizedBox(width: 5),
-              Icon(Icons.verified, color: Colors.blue.shade400, size: 14),
-            ],
-          ),
-        ],
       ),
     );
   }
@@ -413,39 +456,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(width: 15),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Gender",
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _selectedGender,
-                    isDense: true,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
-                      fontSize: 15,
-                    ),
-                    items:
-                        ['Male', 'Female']
-                            .map(
-                              (String value) => DropdownMenuItem(
-                                value: value,
-                                child: Text(value),
-                              ),
-                            )
-                            .toList(),
-                    onChanged: (val) => setState(() => _selectedGender = val!),
-                  ),
-                ),
-              ],
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: _selectedGender,
+                isDense: true,
+                items:
+                    ['Male', 'Female']
+                        .map(
+                          (String value) => DropdownMenuItem(
+                            value: value,
+                            child: Text(value),
+                          ),
+                        )
+                        .toList(),
+                onChanged: (val) => setState(() => _selectedGender = val!),
+              ),
             ),
           ),
         ],
@@ -460,27 +485,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(
         gradient: meshGradient,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFEC4899).withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: () => _showModernSnackBar(context, "Changes Saved!", true),
-          child: const Center(
-            child: Text(
-              'Save Changes',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () => _showModernSnackBar(context, "Changes Saved!", true),
+        child: const Center(
+          child: Text(
+            'Save Changes',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
             ),
           ),
         ),
@@ -495,7 +510,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(
         color: Colors.red.shade50,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.red.shade100),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
@@ -550,9 +564,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor.withOpacity(0.8),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: Theme.of(context).dividerColor.withOpacity(0.1),
-        ),
       ),
       child: Row(
         children: [
@@ -587,46 +598,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showModernSnackBar(BuildContext context, String msg, bool isSuccess) {
-    ScaffoldMessenger.of(context).removeCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Row(
-          children: [
-            Icon(
-              isSuccess ? Icons.check_circle : Icons.error,
-              color: Colors.white,
-              size: 20,
-            ),
-            const SizedBox(width: 10),
-            Flexible(
-              child: Text(
-                msg,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor:
-            isSuccess ? Colors.green.shade600 : Colors.red.shade600,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        margin: const EdgeInsets.all(20),
+        content: Text(msg),
+        backgroundColor: isSuccess ? Colors.green : Colors.red,
       ),
     );
-  }
-}
-
-class ThemeCubit extends Cubit<ThemeMode> {
-  ThemeCubit() : super(ThemeMode.light) {
-    _loadTheme();
-  }
-  void toggleTheme(bool isDark) {
-    CacheHelper.saveData(key: 'isDark', value: isDark);
-    emit(isDark ? ThemeMode.dark : ThemeMode.light);
-  }
-
-  void _loadTheme() {
-    bool isDark = CacheHelper.getData(key: 'isDark') ?? false;
-    emit(isDark ? ThemeMode.dark : ThemeMode.light);
   }
 }

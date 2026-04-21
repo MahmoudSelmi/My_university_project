@@ -1,13 +1,16 @@
+import 'dart:ui';
 import 'package:animations/animations.dart';
-import 'package:auth_slmi/feature/doctor/Teams/Teams.dart';
-import 'package:auth_slmi/feature/doctor/home/views/doctor_home_view.dart';
+import 'package:auth_slmi/feature/doctor/Team/View/view.dart';
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../RequestsView/Views/RequestsView.dart';
-import '../../All Projects/Views/All Projects.dart';
-import '../../Profile/Views/Profile.dart';
+// استيراد الشاشات الخاصة بك (تأكد من صحة المسارات)
+import 'package:auth_slmi/feature/doctor/home/views/doctor_home_view.dart';
+import 'package:auth_slmi/feature/doctor/RequestsView/Views/RequestsView.dart';
+import 'package:auth_slmi/feature/doctor/profile/Views/ProfileDocView.dart';
+import 'package:auth_slmi/feature/doctor/home/Manager/doctor_home_cubit.dart';
 
 class DoctorMainLayout extends StatefulWidget {
   const DoctorMainLayout({super.key});
@@ -18,96 +21,126 @@ class DoctorMainLayout extends StatefulWidget {
 
 class _DoctorMainLayoutState extends State<DoctorMainLayout> {
   int _currentIndex = 0;
+  bool _isLoading = false;
 
-  final List<Widget> _screens = [
-    const DoctorHomeView(),
-    const RequestsView(),
-    const AllProjectsView(),
-    const TeamsView(),
-    const ProfileDocView(),
-  ];
+  // 🔥 ميثود محاكاة الـ API لمدة 1.5 ثانية
+  void _onTabTapped(int index) async {
+    if (index == _currentIndex) return;
 
-  final Color navyDeep = const Color(0xFF0F172A);
-  final Color accentIndigo = const Color(0xFF6366F1);
-  final Color glassEffect = const Color(0xFF1E293B);
+    setState(() {
+      _isLoading = true;
+    });
+
+    // محاكاة الانتظار (1.5 ثانية)
+    await Future.delayed(const Duration(milliseconds: 1500));
+
+    if (!mounted) return;
+
+    setState(() {
+      _currentIndex = index;
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    const Color accentIndigo = Color(0xFF6366F1);
+    const Color navyDeep = Color(0xFF0F172A);
 
-    return Scaffold(
-      extendBody: true,
-      backgroundColor: isDark ? navyDeep : const Color(0xFFF8FAFC),
-      body: PageTransitionSwitcher(
-        duration: const Duration(milliseconds: 500),
-        transitionBuilder: (child, primaryAnimation, secondaryAnimation) {
-          return FadeThroughTransition(
-            animation: primaryAnimation,
-            secondaryAnimation: secondaryAnimation,
-            child: child,
-          );
-        },
-        child: _screens[_currentIndex],
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: accentIndigo.withOpacity(0.15),
-              blurRadius: 30,
-              offset: const Offset(0, -10),
+    return BlocProvider(
+      // الكيوبيت متاح لكل الشاشات (Home, Teams, Requests)
+      create: (context) => DoctorHomeCubit(),
+      child: Scaffold(
+        backgroundColor: navyDeep,
+        body: Stack(
+          children: [
+            // 1. عرض الشاشات مع أنيميشن التلاشي
+            Opacity(
+              opacity: _isLoading ? 0.1 : 1.0,
+              child: PageTransitionSwitcher(
+                duration: const Duration(milliseconds: 400),
+                transitionBuilder:
+                    (child, primary, secondary) => FadeThroughTransition(
+                      animation: primary,
+                      secondaryAnimation: secondary,
+                      child: child,
+                    ),
+                child: _getScreen(_currentIndex),
+              ),
             ),
+
+            // 2. واجهة التحميل (Glassmorphism Loader)
+            if (_isLoading)
+              BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                child: Container(
+                  color: Colors.black26,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const CircularProgressIndicator(
+                          color: accentIndigo,
+                          strokeWidth: 4,
+                        ),
+                        SizedBox(height: 20.h),
+                        Text(
+                          "جاري التحديث...",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
-        child: CurvedNavigationBar(
+
+        // 3. شريط التنقل السفلي (المعدل)
+        bottomNavigationBar: CurvedNavigationBar(
           index: _currentIndex,
-          // --- التعديل الجوهري هنا ---
-          // استخدمنا قيمة ثابتة 65 بدلاً من 65.h لتجنب تخطي حد الـ 75 في الشاشات الكبيرة
-          height: 60,
+          height: 65.h,
           items: <Widget>[
-            _buildCreativeIcon(Icons.home_outlined, Icons.home_rounded, 0),
-            _buildCreativeIcon(
-              Icons.all_inbox_outlined,
-              Icons.all_inbox_rounded,
-              1,
-            ),
-            _buildCreativeIcon(
-              Icons.folder_open_outlined,
-              Icons.folder_rounded,
-              2,
-            ),
-            _buildCreativeIcon(Icons.groups_outlined, Icons.groups_rounded, 3),
-            _buildCreativeIcon(
-              Icons.person_outline_rounded,
-              Icons.person_rounded,
-              4,
-            ),
+            _buildNavIcon(Icons.home_rounded, 0),
+            _buildNavIcon(Icons.all_inbox_rounded, 1),
+            _buildNavIcon(Icons.groups_rounded, 2),
+            _buildNavIcon(Icons.person_rounded, 3),
           ],
-          color: isDark ? glassEffect : Colors.white,
+          color: const Color(0xFF1E293B),
           buttonBackgroundColor: accentIndigo,
           backgroundColor: Colors.transparent,
-          animationCurve: Curves.easeInOutQuart,
           animationDuration: const Duration(milliseconds: 400),
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
+          onTap: _isLoading ? null : _onTabTapped, // تعطيل الضغط وقت التحميل
         ),
       ),
     );
   }
 
-  Widget _buildCreativeIcon(
-    IconData outlineIcon,
-    IconData filledIcon,
-    int index,
-  ) {
-    bool isSelected = _currentIndex == index;
+  Widget _buildNavIcon(IconData icon, int index) {
     return Icon(
-      isSelected ? filledIcon : outlineIcon,
-      size: isSelected ? 28.sp : 24.sp,
-      color: isSelected ? Colors.white : Colors.blueGrey.shade300,
+      icon,
+      size: 28.sp,
+      color: _currentIndex == index ? Colors.white : Colors.blueGrey.shade400,
     );
+  }
+
+  Widget _getScreen(int index) {
+    switch (index) {
+      case 0:
+        return const DoctorHomeView();
+      case 1:
+        return const RequestsView();
+      case 2:
+        return const TeamsViewdoc();
+      case 3:
+        return const ProfileDocView();
+      default:
+        return const DoctorHomeView();
+    }
   }
 }

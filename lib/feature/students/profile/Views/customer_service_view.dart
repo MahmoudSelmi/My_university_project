@@ -6,21 +6,34 @@ class CustomerServiceView extends StatelessWidget {
   const CustomerServiceView({super.key});
 
   final String email = "Ma7moud.m.selmy1@gmail.com";
-  final String phone = "01098494030";
+  final String phone = "+201098494030";
 
-  // ميثود لفتح الإيميل (التوافق مع النسخ القديمة والجديدة)
+  // ميثود لفتح الإيميل
   Future<void> _openEmail() async {
-    final Uri emailUri = Uri(scheme: 'mailto', path: email);
-    if (await canLaunchUrl(emailUri)) {
-      await launchUrl(emailUri);
+    final Uri emailUri = Uri(
+      scheme: 'mailto',
+      path: email,
+      query: 'subject=Support Request - Graduation Project App',
+    );
+    try {
+      if (await canLaunchUrl(emailUri)) {
+        await launchUrl(emailUri, mode: LaunchMode.externalApplication);
+      } else {
+        throw 'Could not launch $emailUri';
+      }
+    } catch (e) {
+      debugPrint("Error launching email: $e");
     }
   }
 
-  // ميثود لفتح الواتساب
+  // ميثود لفتح الواتساب مباشرة
   Future<void> _openWhatsApp() async {
+    // نستخدم الرابط الرسمي wa.me فهو الأكثر استقراراً
     final Uri whatsappUri = Uri.parse("https://wa.me/201098494030");
-    if (await canLaunchUrl(whatsappUri)) {
+    try {
       await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      debugPrint("Error launching WhatsApp: $e");
     }
   }
 
@@ -65,7 +78,7 @@ class CustomerServiceView extends StatelessWidget {
                   child: FadeInAnimation(child: widget),
                 ),
             children: [
-              // --- عرض الـ QR Code اللي بعته في الصورة ---
+              // --- QR Code Section ---
               Center(
                 child: Container(
                   padding: const EdgeInsets.all(4),
@@ -81,18 +94,21 @@ class CustomerServiceView extends StatelessWidget {
                     padding: const EdgeInsets.all(10),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(15),
-                      // استبدل المسار ده بالمسار الصحيح في الـ Assets عندك
                       child: Image.asset(
-                        'assets/images/qr_code.png', // الصورة اللي إنت بعتها
+                        'assets/images/qr_code.png',
                         width: 180,
                         height: 180,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
-                          // لو الصورة لسه فيها مشكلة تظهر أيقونة بدل ما الشاشة تضرب أحمر
-                          return const Icon(
-                            Icons.qr_code_2_rounded,
-                            size: 100,
-                            color: Color(0xFF6366F1),
+                          return Container(
+                            width: 180,
+                            height: 180,
+                            color: Colors.grey.shade100,
+                            child: const Icon(
+                              Icons.qr_code_2_rounded,
+                              size: 100,
+                              color: Color(0xFF6366F1),
+                            ),
                           );
                         },
                       ),
@@ -100,34 +116,39 @@ class CustomerServiceView extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 30),
-
+              const SizedBox(height: 25),
               const Center(
                 child: Text(
-                  "Scan QR for Technical Support",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  "Scan for Instant Support",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
                 ),
               ),
               const SizedBox(height: 40),
 
-              // كارت الإيميل
+              // --- Contact Options ---
               _buildContactCard(
                 context,
-                title: "Email Support",
+                title: "Email Address",
                 subtitle: email,
                 icon: Icons.alternate_email_rounded,
+                color: const Color(0xFF6366F1),
                 onTap: _openEmail,
               ),
-
-              const SizedBox(height: 15),
-
-              // كارت الواتساب
+              const SizedBox(height: 16),
               _buildContactCard(
                 context,
-                title: "WhatsApp",
-                subtitle: phone,
+                title: "WhatsApp Chat",
+                subtitle: "Available 24/7",
                 icon: Icons.chat_bubble_outline_rounded,
+                color: const Color(0xFF25D366), // لون الواتساب الرسمي
                 onTap: _openWhatsApp,
+              ),
+              const SizedBox(height: 40),
+
+              const Text(
+                "Our team usually responds within 2 hours.",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey, fontSize: 13),
               ),
             ],
           ),
@@ -141,14 +162,19 @@ class CustomerServiceView extends StatelessWidget {
     required String title,
     required String subtitle,
     required IconData icon,
+    required Color color,
     required VoidCallback onTap,
   }) {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
         ],
       ),
       child: ListTile(
@@ -158,19 +184,23 @@ class CustomerServiceView extends StatelessWidget {
           vertical: 10,
         ),
         leading: Container(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFF6366F1).withOpacity(0.08),
-            borderRadius: BorderRadius.circular(12),
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(15),
           ),
-          child: Icon(icon, color: const Color(0xFF6366F1), size: 26),
+          child: Icon(icon, color: color, size: 26),
         ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(
           subtitle,
           style: const TextStyle(fontSize: 12, color: Colors.grey),
         ),
-        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+        trailing: const Icon(
+          Icons.arrow_forward_ios_rounded,
+          size: 14,
+          color: Colors.grey,
+        ),
       ),
     );
   }

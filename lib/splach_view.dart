@@ -136,7 +136,6 @@ class _SplachViewState extends State<SplachView> {
   Widget _buildAmbientGlow() {
     return Stack(
       children: [
-        // توهج أرجواني فوق يمين
         Positioned(
           top: -100,
           right: -50,

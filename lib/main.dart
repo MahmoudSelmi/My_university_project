@@ -1,10 +1,10 @@
+import 'package:auth_slmi/core/Theme%20Option/ThemeCubit.dart';
 import 'package:auth_slmi/core/BottomNavState/BottomNavCubit.dart';
 import 'package:auth_slmi/core/BottomNavState/StudentMainLayout.dart'; // تأكد من المسار
 import 'package:auth_slmi/feature/doctor/DoctorMainLayout/Views/DoctorMainLayout.dart';
 import 'package:auth_slmi/core/helper/CacheHelper.dart';
 import 'package:auth_slmi/feature/students/Home/data/DioHelper.dart';
 import 'package:auth_slmi/feature/students/Home/manager/home_cubit.dart';
-import 'package:auth_slmi/feature/students/profile/Views/profile_screen.dart';
 import 'package:auth_slmi/splach_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,12 +21,12 @@ void main() async {
 
   if (isLoggedIn == true) {
     if (userRole == 'doctor') {
-      widget = const DoctorMainLayout(); // لو دكتور يدخل هنا
+      widget = const DoctorMainLayout();
     } else {
-      widget = const StudentMainLayout(); // لو طالب يدخل هنا
+      widget = const StudentMainLayout();
     }
   } else {
-    widget = const SplachView(); // لو أول مرة يفتح السبلاش العادية
+    widget = const SplachView();
   }
 
   runApp(MyApp(startWidget: widget));
