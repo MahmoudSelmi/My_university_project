@@ -91,7 +91,7 @@ class _UploadProjectScreenState extends State<UploadProjectScreen> {
                 child: Icon(
                   Icons.cloud_upload,
                   size: 80,
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                 ),
               ),
             ),
@@ -114,7 +114,7 @@ class _UploadProjectScreenState extends State<UploadProjectScreen> {
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withValues(alpha: 0.05),
                           blurRadius: 20,
                         ),
                       ],
@@ -138,10 +138,14 @@ class _UploadProjectScreenState extends State<UploadProjectScreen> {
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(vertical: 30),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF6366F1).withOpacity(0.05),
+                              color: const Color(
+                                0xFF6366F1,
+                              ).withValues(alpha: 0.05),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: const Color(0xFF6366F1).withOpacity(0.2),
+                                color: const Color(
+                                  0xFF6366F1,
+                                ).withValues(alpha: 0.2),
                               ),
                             ),
                             child: Column(
@@ -187,7 +191,7 @@ class _UploadProjectScreenState extends State<UploadProjectScreen> {
       height: 60,
       decoration: BoxDecoration(
         gradient: canUpload ? meshGradient : null,
-        color: !canUpload ? Colors.grey.withOpacity(0.3) : null,
+        color: !canUpload ? Colors.grey.withValues(alpha: 0.3) : null,
         borderRadius: BorderRadius.circular(20),
       ),
       child: ElevatedButton(

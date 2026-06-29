@@ -16,9 +16,7 @@ class ProjectDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // شيلنا الـ Theme ويدجت اللي كانت بتجبر الشاشة على اللايت مود
     return Scaffold(
-      // الخلفية بتسمع من الثيم (هتبقى غامقة لو فعلت الدارك مود)
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -31,7 +29,6 @@ class ProjectDetailsScreen extends StatelessWidget {
         title: Text(
           "Project Details",
           style: TextStyle(
-            // لون النص بيتغير تلقائياً حسب المود
             color: Theme.of(context).textTheme.bodyLarge?.color,
             fontWeight: FontWeight.bold,
           ),
@@ -74,7 +71,7 @@ class _HeaderCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: ProjectDetailsScreen._primaryColor.withOpacity(0.2),
+            color: ProjectDetailsScreen._primaryColor.withValues(alpha: 0.2),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -137,7 +134,7 @@ class _ContentCard extends StatelessWidget {
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 5),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.01), blurRadius: 5),
         ],
       ),
       child: Text(
@@ -182,7 +179,7 @@ class _SupervisorTile extends StatelessWidget {
           style: TextStyle(
             color: Theme.of(
               context,
-            ).textTheme.bodyMedium?.color?.withOpacity(0.1),
+            ).textTheme.bodyMedium?.color?.withValues(alpha: 0.1),
           ),
         ),
       ),

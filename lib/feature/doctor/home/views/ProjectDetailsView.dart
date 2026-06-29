@@ -65,7 +65,7 @@ class DoctorProjectDetailsView extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFF1E293B),
                 borderRadius: BorderRadius.circular(24.r),
-                border: Border.all(color: Colors.white.withOpacity(0.05)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
               ),
               child: ListView.separated(
                 shrinkWrap: true,
@@ -73,13 +73,15 @@ class DoctorProjectDetailsView extends StatelessWidget {
                 itemCount: members.length,
                 separatorBuilder:
                     (context, index) => Divider(
-                      color: Colors.white.withOpacity(0.05),
+                      color: Colors.white.withValues(alpha: 0.05),
                       height: 1,
                     ),
                 itemBuilder:
                     (context, index) => ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: Colors.blueAccent.withOpacity(0.1),
+                        backgroundColor: Colors.blueAccent.withValues(
+                          alpha: 0.1,
+                        ),
                         child: Text(
                           "${index + 1}",
                           style: const TextStyle(color: Colors.blueAccent),
@@ -107,7 +109,7 @@ class DoctorProjectDetailsView extends StatelessWidget {
     decoration: BoxDecoration(
       color: const Color(0xFF1E293B),
       borderRadius: BorderRadius.circular(20.r),
-      border: Border.all(color: Colors.white.withOpacity(0.05)),
+      border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,

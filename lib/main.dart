@@ -9,6 +9,8 @@ import 'package:auth_slmi/splach_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+//Ma7moud Selmi
+//522660
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -66,7 +68,6 @@ class MyApp extends StatelessWidget {
                   primaryColor: const Color(0xFF6366F1),
                   cardColor: const Color(0xFF1E293B),
                 ),
-                // هتاخد الـ startWidget اللي جاية من الـ main
                 home: startWidget,
               );
             },

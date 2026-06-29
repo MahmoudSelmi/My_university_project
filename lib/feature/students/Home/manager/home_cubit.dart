@@ -36,6 +36,7 @@ class HomeCubit extends Cubit<HomeState> {
 
         query: {'status': 'start'},
         data: {},
+        token: '',
       );
 
       if (value.data['success'] == true) {

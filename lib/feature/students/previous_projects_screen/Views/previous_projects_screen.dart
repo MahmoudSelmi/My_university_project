@@ -100,15 +100,15 @@ class PreviousProjectsScreen extends StatelessWidget {
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         // لون الكارت يتغير حسب الثيم
-        color: Theme.of(context).cardColor.withOpacity(0.9),
+        color: Theme.of(context).cardColor.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(30),
         border: Border.all(
-          color: Theme.of(context).dividerColor.withOpacity(0.1),
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -152,7 +152,7 @@ class PreviousProjectsScreen extends StatelessWidget {
   ) {
     return Column(
       children: [
-        Icon(icon, color: color.withOpacity(0.7), size: 20),
+        Icon(icon, color: color.withValues(alpha: 0.7), size: 20),
         const SizedBox(height: 8),
         Text(
           value,
@@ -185,12 +185,12 @@ class PreviousProjectsScreen extends StatelessWidget {
         color: Theme.of(context).cardColor, // لون الكارت من الثيم
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: Theme.of(context).dividerColor.withOpacity(0.1),
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -207,7 +207,7 @@ class PreviousProjectsScreen extends StatelessWidget {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.08),
+                  color: Theme.of(context).primaryColor.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
@@ -254,7 +254,7 @@ class PreviousProjectsScreen extends StatelessWidget {
                 radius: 16,
                 backgroundColor: Theme.of(
                   context,
-                ).primaryColor.withOpacity(0.1),
+                ).primaryColor.withValues(alpha: 0.1),
                 child: Icon(
                   Icons.person_outline_rounded,
                   size: 18,
@@ -286,7 +286,7 @@ class PreviousProjectsScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFEC4899).withOpacity(0.2),
+            color: const Color(0xFFEC4899).withValues(alpha: 0.2),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),

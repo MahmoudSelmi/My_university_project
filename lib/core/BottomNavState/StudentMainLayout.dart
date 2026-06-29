@@ -47,14 +47,14 @@ class StudentMainLayout extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(30),
-              border: Border.all(color: Colors.white.withOpacity(0.2)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  const Color(0xFF6366F1).withOpacity(0.85),
-                  const Color(0xFFA855F7).withOpacity(0.85),
-                  const Color(0xFFEC4899).withOpacity(0.85),
+                  const Color(0xFF6366F1).withValues(alpha: 0.85),
+                  const Color(0xFFA855F7).withValues(alpha: 0.85),
+                  const Color(0xFFEC4899).withValues(alpha: 0.85),
                 ],
               ),
             ),
@@ -94,7 +94,7 @@ class StudentMainLayout extends StatelessWidget {
                   isSelected
                       ? [
                         BoxShadow(
-                          color: Colors.white.withOpacity(0.3),
+                          color: Colors.white.withValues(alpha: 0.3),
                           blurRadius: 10,
                           spreadRadius: 1,
                         ),
@@ -106,7 +106,7 @@ class StudentMainLayout extends StatelessWidget {
               color:
                   isSelected
                       ? const Color(0xFF6366F1)
-                      : Colors.white.withOpacity(0.6),
+                      : Colors.white.withValues(alpha: 0.6),
               size: isSelected ? 24 : 22, // صغرنا الحجم شوية عشان الـ Exception
             ),
           ),

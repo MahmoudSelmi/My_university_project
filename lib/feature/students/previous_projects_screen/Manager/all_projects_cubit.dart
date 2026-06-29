@@ -27,7 +27,11 @@ class AllProjectsCubit extends Cubit<AllProjectsState> {
   void getAllProjects() async {
     emit(AllProjectsLoading());
     try {
-      final response = await DioHelper.getData(url: 'projects/all', data: {});
+      final response = await DioHelper.getData(
+        url: 'projects/all',
+        data: {},
+        token: '',
+      );
       var model = AllProjectsModel.fromJson(response.data);
       emit(AllProjectsSuccess(model.data ?? [], model.stats!));
     } catch (e) {

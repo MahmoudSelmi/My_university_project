@@ -140,7 +140,10 @@ class MyProjectDetailsView extends StatelessWidget {
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+          ),
         ],
       ),
       child: Row(
@@ -169,7 +172,7 @@ class MyProjectDetailsView extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor.withOpacity(0.6),
+        color: Theme.of(context).cardColor.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(15),
       ),
       child: Text(text, style: const TextStyle(fontSize: 14, height: 1.5)),
@@ -188,7 +191,7 @@ class MyProjectDetailsView extends StatelessWidget {
                     label: Text(t, style: const TextStyle(fontSize: 12)),
                     backgroundColor: Theme.of(
                       context,
-                    ).primaryColor.withOpacity(0.08),
+                    ).primaryColor.withValues(alpha: 0.08),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),

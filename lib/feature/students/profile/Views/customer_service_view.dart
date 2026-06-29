@@ -6,32 +6,44 @@ class CustomerServiceView extends StatelessWidget {
   const CustomerServiceView({super.key});
 
   final String email = "Ma7moud.m.selmy1@gmail.com";
-  final String phone = "+201098494030";
+  final String phone = "201098494030"; // رقم الواتساب بدون علامة +
 
-  // ميثود لفتح الإيميل
+  // ميثود لفتح الإيميل (تعديل لضمان التوافق)
   Future<void> _openEmail() async {
-    final Uri emailUri = Uri(
-      scheme: 'mailto',
-      path: email,
-      query: 'subject=Support Request - Graduation Project App',
+    // نستخدم Uri.encodeComponent لضمان أن المسافات والرموز يتم معالجتها صح
+    final String subject = Uri.encodeComponent("Support Request - Khotwa App");
+    final String body = Uri.encodeComponent(
+      "Hello Support Team,\nI need help with...",
     );
+    final Uri emailUri = Uri.parse("mailto:$email?subject=$subject&body=$body");
+
     try {
-      if (await canLaunchUrl(emailUri)) {
-        await launchUrl(emailUri, mode: LaunchMode.externalApplication);
-      } else {
+      // جرب تفتح الرابط الخارجي مباشرة
+      if (!await launchUrl(emailUri, mode: LaunchMode.externalApplication)) {
         throw 'Could not launch $emailUri';
       }
     } catch (e) {
       debugPrint("Error launching email: $e");
+      // تنبيه لليوزر لو مفيش تطبيق إيميل
     }
   }
 
-  // ميثود لفتح الواتساب مباشرة
+  // ميثود لفتح الواتساب مع رسالة تلقائية
   Future<void> _openWhatsApp() async {
-    // نستخدم الرابط الرسمي wa.me فهو الأكثر استقراراً
-    final Uri whatsappUri = Uri.parse("https://wa.me/201098494030");
+    // النص الترحيبي المناسب لمشروعك
+    const String message =
+        "أهلاً بخدمة عملاء تطبيق خطوة، عندي استفسار بخصوص مشروع التخرج الخاص بي.";
+    final String encodedMessage = Uri.encodeComponent(message);
+
+    // الرابط الرسمي يدعم إضافة النص عبر الباراميتر text
+    final Uri whatsappUri = Uri.parse(
+      "https://wa.me/$phone?text=$encodedMessage",
+    );
+
     try {
-      await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+      if (!await launchUrl(whatsappUri, mode: LaunchMode.externalApplication)) {
+        throw 'Could not launch WhatsApp';
+      }
     } catch (e) {
       debugPrint("Error launching WhatsApp: $e");
     }
@@ -140,7 +152,7 @@ class CustomerServiceView extends StatelessWidget {
                 title: "WhatsApp Chat",
                 subtitle: "Available 24/7",
                 icon: Icons.chat_bubble_outline_rounded,
-                color: const Color(0xFF25D366), // لون الواتساب الرسمي
+                color: const Color(0xFF25D366),
                 onTap: _openWhatsApp,
               ),
               const SizedBox(height: 40),
@@ -171,7 +183,7 @@ class CustomerServiceView extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -186,7 +198,7 @@ class CustomerServiceView extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(15),
           ),
           child: Icon(icon, color: color, size: 26),

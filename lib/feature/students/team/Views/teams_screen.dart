@@ -50,7 +50,7 @@ class TeamsScreen extends StatelessWidget {
         height: 200,
         decoration: BoxDecoration(
           // جعل الديكور يتناسب مع لون البريماري للثيم
-          color: Theme.of(context).primaryColor.withOpacity(0.03),
+          color: Theme.of(context).primaryColor.withValues(alpha: 0.03),
           shape: BoxShape.circle,
         ),
       ),
@@ -78,7 +78,7 @@ class TeamsScreen extends StatelessWidget {
                   style: TextStyle(
                     color: Theme.of(
                       context,
-                    ).textTheme.bodyMedium?.color?.withOpacity(0.6),
+                    ).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
                     fontSize: 13,
                   ),
                 ),
@@ -213,7 +213,7 @@ class TeamsScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withOpacity(0.08),
+              color: Theme.of(context).primaryColor.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(15),
             ),
             child: Icon(icon, color: Theme.of(context).primaryColor, size: 28),
@@ -227,7 +227,7 @@ class TeamsScreen extends StatelessWidget {
                 style: TextStyle(
                   color: Theme.of(
                     context,
-                  ).textTheme.bodyMedium?.color?.withOpacity(0.5),
+                  ).textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
                   fontSize: 12,
                 ),
               ),
@@ -257,7 +257,9 @@ class TeamsScreen extends StatelessWidget {
             contentPadding: EdgeInsets.zero,
             leading: CircleAvatar(
               radius: 26,
-              backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+              backgroundColor: Theme.of(
+                context,
+              ).primaryColor.withValues(alpha: 0.1),
               child: Icon(
                 Icons.person_rounded,
                 color: Theme.of(context).primaryColor,
@@ -300,7 +302,7 @@ class TeamsScreen extends StatelessWidget {
                 size: 16,
                 color: Theme.of(
                   context,
-                ).textTheme.bodyMedium?.color?.withOpacity(0.5),
+                ).textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
               ),
               const SizedBox(width: 8),
               Text(
@@ -308,7 +310,7 @@ class TeamsScreen extends StatelessWidget {
                 style: TextStyle(
                   color: Theme.of(
                     context,
-                  ).textTheme.bodyLarge?.color?.withOpacity(0.8),
+                  ).textTheme.bodyLarge?.color?.withValues(alpha: 0.8),
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                 ),
@@ -330,8 +332,8 @@ class TeamsScreen extends StatelessWidget {
           CircleAvatar(
             backgroundColor:
                 isLeader
-                    ? const Color(0xFFA855F7).withOpacity(0.1)
-                    : Theme.of(context).dividerColor.withOpacity(0.1),
+                    ? const Color(0xFFA855F7).withValues(alpha: 0.1)
+                    : Theme.of(context).dividerColor.withValues(alpha: 0.1),
             child: Icon(
               isLeader ? Icons.star_rounded : Icons.person_outline_rounded,
               color: isLeader ? const Color(0xFFA855F7) : Colors.grey,
@@ -368,7 +370,7 @@ class TeamsScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFEC4899).withOpacity(0.2),
+                    color: const Color(0xFFEC4899).withValues(alpha: 0.2),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
@@ -391,15 +393,15 @@ class TeamsScreen extends StatelessWidget {
   BoxDecoration _cardDecoration(BuildContext context) {
     return BoxDecoration(
       // استخدام cardColor ليتغير آلياً بين الأبيض والكحلي الغامق
-      color: Theme.of(context).cardColor.withOpacity(0.96),
+      color: Theme.of(context).cardColor.withValues(alpha: 0.96),
       borderRadius: BorderRadius.circular(24),
       border: Border.all(
-        color: Theme.of(context).dividerColor.withOpacity(0.1),
+        color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
         width: 1.5,
       ),
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withOpacity(0.04),
+          color: Colors.black.withValues(alpha: 0.04),
           blurRadius: 15,
           offset: const Offset(0, 8),
         ),

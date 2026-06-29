@@ -33,7 +33,7 @@ class MyProjectCubit extends Cubit<MyProjectState> {
       final response = await DioHelper.getData(
         url: 'projects/my-project',
         token:
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZDI2ZGUwODYyMjlhMjhkNDcxYzNmYSIsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzc1NzM2NTg2LCJleHAiOjE3ODQzNzY1ODZ9.rpxUN6GKUkg2hxXcnFvs5uFk0dH8T-o5FHkO-zXAkEU',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZmQxMDU2MjhhYTg0M2YwOGIwNDY1NiIsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzc4MzI2Njg3LCJleHAiOjE3ODY5NjY2ODd9.tCHZ9Z67KYHuSYPvDMlnTKRiw8fvAvXyUCZuVmUKYD0',
         data: {},
       );
 

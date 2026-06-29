@@ -96,4 +96,6 @@ class DoctorHomeCubit extends Cubit<DoctorHomeStates> {
     pendingRequestsList.removeAt(index);
     getHomeData();
   }
+
+  void deleteTeam(int index) {}
 }

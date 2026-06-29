@@ -82,7 +82,7 @@ class AllProjectsView extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(16.r),
         decoration: BoxDecoration(
-          color: const Color(0xFF6366F1).withOpacity(0.1),
+          color: const Color(0xFF6366F1).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(15.r),
         ),
         child: Text(

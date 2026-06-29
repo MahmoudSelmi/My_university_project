@@ -1,16 +1,19 @@
-import 'dart:io'; // مهم جداً عشان التعامل مع الملفات
-import 'package:auth_slmi/core/Theme%20Option/ThemeCubit.dart';
-import 'package:auth_slmi/feature/students/profile/Views/customer_service_view.dart';
-import 'package:auth_slmi/feature/students/profile/Views/egyptian_bot_view.dart';
-import 'package:auth_slmi/feature/students/profile/Views/SupervisionRequestPage.dart';
+import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'package:image_picker/image_picker.dart'; // مكتبة اختيار الصور
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+// المسارات الخاصة بمشروعك
+import 'package:auth_slmi/core/Theme%20Option/ThemeCubit.dart';
 import 'package:auth_slmi/core/helper/app_nav.dart';
 import 'package:auth_slmi/feature/auth/Login/views/login_view.dart';
-import 'package:auth_slmi/feature/auth/rest_pass/views/rest_pass_view.dart';
+import 'package:auth_slmi/feature/auth/forget_pass/views/forget_pass_view.dart';
+import 'package:auth_slmi/feature/students/profile/Views/customer_service_view.dart';
+import 'package:auth_slmi/feature/students/profile/Views/AI/egyptian_bot_view.dart';
+import 'package:auth_slmi/feature/students/profile/Views/SupervisionRequestPage.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -19,13 +22,11 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  String _selectedGender = 'Male';
-  final TextEditingController _bioController = TextEditingController(
-    text: "Flutter Developer",
-  );
+  String? _selectedGender;
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _bioController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
 
-  // 1. تعريف متغير الصورة والمكتبة
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
 
@@ -35,18 +36,109 @@ class _ProfileScreenState extends State<ProfileScreen> {
     colors: [Color(0xFF6366F1), Color(0xFFA855F7), Color(0xFFEC4899)],
   );
 
-  // 2. ميثود اختيار الصورة من المعرض
-  Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 80, // تقليل الحجم للحفاظ على الأداء
-    );
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedData();
+  }
 
+  // --- تحميل البيانات وتثبيت الحالة ---
+  Future<void> _loadSavedData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _nameController.text = prefs.getString('user_name') ?? "Mahmoud Selmi";
+      _bioController.text = prefs.getString('user_bio') ?? "";
+      _phoneController.text = prefs.getString('user_phone') ?? "";
+      _selectedGender = prefs.getString('user_gender');
+
+      String? imagePath = prefs.getString('user_image');
+      if (imagePath != null && imagePath.isNotEmpty) {
+        _imageFile = File(imagePath);
+      }
+    });
+  }
+
+  // --- حفظ البيانات (الكاش النهائي) ---
+  Future<void> _saveAllData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_name', _nameController.text);
+    await prefs.setString('user_bio', _bioController.text);
+    await prefs.setString('user_phone', _phoneController.text);
+    if (_selectedGender != null) {
+      await prefs.setString('user_gender', _selectedGender!);
+    } else {
+      await prefs.remove('user_gender');
+    }
+
+    if (_imageFile != null) {
+      await prefs.setString('user_image', _imageFile!.path);
+    }
+
+    if (mounted) {
+      _showModernSnackBar(context, "تم حفظ وتكييش البيانات بنجاح! ✅", true);
+    }
+  }
+
+  // --- خيارات الصورة ---
+  void _showImageOptions() {
+    showCupertinoModalPopup(
+      context: context,
+      builder:
+          (context) => CupertinoActionSheet(
+            title: const Text('Profile Picture'),
+            message: const Text('Choose how you want to update your photo'),
+            actions: [
+              CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+                child: const Text('Take a Photo (Camera)'),
+              ),
+              CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+                child: const Text('Choose from Gallery'),
+              ),
+              CupertinoActionSheetAction(
+                isDestructiveAction: true,
+                onPressed: () {
+                  Navigator.pop(context);
+                  _removeImage();
+                },
+                child: const Text('Remove Current Photo'),
+              ),
+            ],
+            cancelButton: CupertinoActionSheetAction(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+          ),
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final XFile? pickedFile = await _picker.pickImage(
+      source: source,
+      imageQuality: 85,
+    );
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
       });
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_image', pickedFile.path);
     }
+  }
+
+  Future<void> _removeImage() async {
+    setState(() {
+      _imageFile = null;
+    });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('user_image');
   }
 
   @override
@@ -71,107 +163,76 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 15),
               _infoCard(
                 "University",
-                "Helwan University",
-                Icons.school_rounded,
+                "معاهد العبور",
+                Icons.account_balance_rounded,
               ),
-              _infoCard(
-                "Department",
-                "Software Engineering",
-                Icons.account_tree_rounded,
-              ),
+              _infoCard("Department", "BIS", Icons.analytics_rounded),
               const SizedBox(height: 25),
-              _buildSectionTitle('Settings & Security'),
+              _buildSectionTitle('Personal Details'),
               const SizedBox(height: 15),
-
-              // Theme Option
-              BlocBuilder<ThemeCubit, ThemeMode>(
-                builder: (context, themeMode) {
-                  bool isDark = themeMode == ThemeMode.dark;
-                  return _buildThemeOption(
-                    title: "Dark Mode",
-                    subtitle:
-                        isDark ? "Switch to light mode" : "Enable dark theme",
-                    icon:
-                        isDark
-                            ? Icons.dark_mode_rounded
-                            : Icons.light_mode_rounded,
-                    value: isDark,
-                    onChanged:
-                        (val) => context.read<ThemeCubit>().toggleTheme(val),
-                  );
-                },
+              _buildEditableField(
+                _nameController,
+                "Full Name",
+                Icons.person_pin_rounded,
+                "Enter your name",
               ),
-              const SizedBox(height: 12),
-
-              _buildSecurityOption(
-                title: "Change Password",
-                subtitle: "Update your security credentials",
-                icon: Icons.lock_outline_rounded,
-                onTap:
-                    () => MyNavigator.goTo(
-                      context,
-                      const ResetPasswordView(),
-                      type: NavigatorType.push,
-                    ),
+              _buildEditableField(
+                _bioController,
+                "Bio",
+                Icons.auto_fix_high_rounded,
+                "Describe yourself...",
               ),
-              const SizedBox(height: 12),
-
-              _buildSecurityOption(
-                title: "Customer Service",
-                subtitle: "Contact us anytime",
-                icon: Icons.support_agent,
-                onTap:
-                    () => MyNavigator.goTo(
-                      context,
-                      const CustomerServiceView(),
-                      type: NavigatorType.push,
-                    ),
-              ),
-              const SizedBox(height: 12),
-
-              _buildSecurityOption(
-                title: "Submit Graduation Project",
-                subtitle: "Send supervision request",
-                icon: Icons.upload_file,
-                onTap:
-                    () => MyNavigator.goTo(
-                      context,
-                      const SupervisionRequestPage(),
-                      type: NavigatorType.push,
-                    ),
-              ),
-              const SizedBox(height: 12),
-
-              _buildSecurityOption(
-                title: "AI Bot",
-                subtitle: "دردش مع البوت",
-                icon: Icons.auto_awesome_rounded,
-                onTap:
-                    () => MyNavigator.goTo(
-                      context,
-                      const EgyptianBotView(),
-                      type: NavigatorType.push,
-                    ),
-              ),
-
-              const SizedBox(height: 25),
-              _buildSectionTitle('Edit Profile Details'),
-              const SizedBox(height: 15),
-              _buildEditableCard(
-                controller: _bioController,
-                label: "Bio",
-                icon: Icons.edit_note_rounded,
-                hint: "Write your bio...",
-              ),
-              const SizedBox(height: 15),
               _buildGenderDropdown(),
-              const SizedBox(height: 15),
-              _buildEditableCard(
-                controller: _phoneController,
-                label: "Phone Number",
-                icon: Icons.phone_android_rounded,
-                hint: "Add Phone Number",
+              _buildEditableField(
+                _phoneController,
+                "Phone",
+                Icons.phone_iphone_rounded,
+                "01xxxxxxxxx",
                 keyboardType: TextInputType.phone,
+              ),
+              const SizedBox(height: 25),
+              _buildSectionTitle('Services & Support'),
+              const SizedBox(height: 15),
+              _buildThemeToggle(),
+              _buildSecurityOption(
+                "Change Password",
+                "Secure your account",
+                Icons.vpn_key_rounded,
+                () => MyNavigator.goTo(
+                  context,
+                  const ForgetPassView(),
+                  type: NavigatorType.push,
+                ),
+              ),
+              _buildSecurityOption(
+                "AI Egyptian Bot",
+                "دردش مع الذكاء الاصطناعي",
+                Icons.auto_awesome_rounded,
+                () => MyNavigator.goTo(
+                  context,
+                  const KhotwaOmniAI(),
+                  type: NavigatorType.push,
+                ),
+              ),
+              _buildSecurityOption(
+                "Customer Service",
+                "تواصل مع الدعم الفني",
+                Icons.headset_mic_rounded,
+                () => MyNavigator.goTo(
+                  context,
+                  const CustomerServiceView(),
+                  type: NavigatorType.push,
+                ),
+              ),
+              _buildSecurityOption(
+                "Supervision Request",
+                "Submit Project",
+                Icons.rocket_launch_rounded,
+                () => MyNavigator.goTo(
+                  context,
+                  const SupervisionRequestPage(),
+                  type: NavigatorType.push,
+                ),
               ),
               const SizedBox(height: 40),
               _buildSaveButton(),
@@ -192,9 +253,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         borderRadius: BorderRadius.circular(35),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6366F1).withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 20,
-            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -204,7 +264,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             alignment: Alignment.bottomRight,
             children: [
               GestureDetector(
-                onTap: _pickImage, // 3. تشغيل اختيار الصورة عند الضغط
+                onTap: _showImageOptions,
                 child: Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
@@ -212,323 +272,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     shape: BoxShape.circle,
                   ),
                   child: CircleAvatar(
-                    radius: 55,
-                    backgroundColor: Colors.white,
-                    // 4. عرض الصورة المختارة أو أيقونة افتراضية
+                    radius: 60,
+                    backgroundColor: Colors.grey.shade200,
                     backgroundImage:
                         _imageFile != null ? FileImage(_imageFile!) : null,
                     child:
                         _imageFile == null
                             ? const Icon(
                               Icons.person,
-                              size: 55,
-                              color: Color(0xFF6366F1),
+                              size: 60,
+                              color: Colors.white,
                             )
                             : null,
                   ),
                 ),
               ),
-              GestureDetector(
-                onTap: _pickImage,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF6366F1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.camera_alt,
-                    color: Colors.white,
-                    size: 18,
-                  ),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF6366F1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.camera_alt,
+                  size: 16,
+                  color: Colors.white,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 15),
           Text(
-            "Mahmoud Selmi",
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).textTheme.bodyLarge?.color,
-            ),
+            _nameController.text.isEmpty
+                ? "Student Name"
+                : _nameController.text,
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                "mahmoud.selmi.dev@gmail.com",
-                style: TextStyle(color: Colors.grey, fontSize: 13),
-              ),
-              const SizedBox(width: 5),
-              Icon(Icons.verified, color: Colors.blue.shade400, size: 14),
-            ],
+          Text(
+            _bioController.text.isEmpty
+                ? "No bio added yet"
+                : _bioController.text,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.grey, fontSize: 13),
           ),
         ],
-      ),
-    );
-  }
-
-  // ... باقي الـ Widgets (AppBar, SectionTitle, InfoCard, EditableCard, الخ) تفضل زي ما هي بدون تغيير ...
-
-  PreferredSizeWidget _buildModernAppBar() {
-    return AppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      centerTitle: true,
-      title: ShaderMask(
-        shaderCallback: (bounds) => meshGradient.createShader(bounds),
-        child: const Text(
-          'Profile',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildThemeOption({
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required bool value,
-    required Function(bool) onChanged,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10),
-        ],
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: const Color(0xFF6366F1).withOpacity(0.08),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: const Color(0xFF6366F1), size: 24),
-        ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(
-          subtitle,
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
-        ),
-        trailing: Switch.adaptive(
-          value: value,
-          activeColor: const Color(0xFF6366F1),
-          onChanged: onChanged,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSecurityOption({
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10),
-        ],
-      ),
-      child: ListTile(
-        onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: const Color(0xFF6366F1).withOpacity(0.08),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: const Color(0xFF6366F1), size: 24),
-        ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(
-          subtitle,
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
-        ),
-        trailing: const Icon(
-          Icons.arrow_forward_ios_rounded,
-          size: 14,
-          color: Colors.grey,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEditableCard({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    required String hint,
-    TextInputType keyboardType = TextInputType.text,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF6366F1).withOpacity(0.08),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: const Color(0xFF6366F1), size: 22),
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                TextField(
-                  controller: controller,
-                  keyboardType: keyboardType,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                    fontSize: 15,
-                  ),
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
-                    hintText: hint,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGenderDropdown() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFFA855F7).withOpacity(0.08),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.wc_rounded,
-              color: Color(0xFFA855F7),
-              size: 22,
-            ),
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _selectedGender,
-                isDense: true,
-                items:
-                    ['Male', 'Female']
-                        .map(
-                          (String value) => DropdownMenuItem(
-                            value: value,
-                            child: Text(value),
-                          ),
-                        )
-                        .toList(),
-                onChanged: (val) => setState(() => _selectedGender = val!),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSaveButton() {
-    return Container(
-      width: double.infinity,
-      height: 60,
-      decoration: BoxDecoration(
-        gradient: meshGradient,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: () => _showModernSnackBar(context, "Changes Saved!", true),
-        child: const Center(
-          child: Text(
-            'Save Changes',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLogoutButton() {
-    return Container(
-      width: double.infinity,
-      height: 60,
-      decoration: BoxDecoration(
-        color: Colors.red.shade50,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: () => _logout(context),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.logout_rounded, color: Colors.red.shade400, size: 22),
-            const SizedBox(width: 10),
-            const Text(
-              "Logout",
-              style: TextStyle(
-                color: Color(0xFFEF4444),
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -547,35 +334,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(width: 10),
         Text(
           title,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).textTheme.bodyLarge?.color,
-          ),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ],
     );
   }
 
-  Widget _infoCard(String title, String value, IconData icon) {
+  Widget _buildEditableField(
+    TextEditingController controller,
+    String label,
+    IconData icon,
+    String hint, {
+    TextInputType keyboardType = TextInputType.text,
+  }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 15),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor.withOpacity(0.8),
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(22),
+      ),
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        style: const TextStyle(fontWeight: FontWeight.bold),
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          prefixIcon: Icon(icon, color: const Color(0xFF6366F1)),
+          border: InputBorder.none,
+        ),
+        onChanged: (val) => setState(() {}),
+      ),
+    );
+  }
+
+  Widget _buildGenderDropdown() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 15),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(25),
       ),
       child: Row(
         children: [
-          Icon(icon, color: Colors.grey.shade400, size: 20),
+          Icon(Icons.wc_rounded, color: Colors.purple.shade300, size: 22),
           const SizedBox(width: 15),
-          Text(title, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-          const Spacer(),
-          Text(
-            value,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).textTheme.bodyLarge?.color,
+          Expanded(
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: _selectedGender,
+                hint: const Text("Select Gender"),
+                isExpanded: true,
+                items:
+                    ['Male', 'Female'].map((String val) {
+                      return DropdownMenuItem<String>(
+                        value: val,
+                        child: Text(val),
+                      );
+                    }).toList(),
+                onChanged: (val) => setState(() => _selectedGender = val),
+              ),
             ),
           ),
         ],
@@ -583,13 +403,145 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Widget _buildThemeToggle() {
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, mode) {
+        bool isDark = mode == ThemeMode.dark;
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(22),
+          ),
+          child: ListTile(
+            leading: Icon(
+              isDark ? Icons.nights_stay_rounded : Icons.wb_sunny_rounded,
+              color: const Color(0xFF6366F1),
+            ),
+            title: const Text(
+              "Dark Experience",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            trailing: Switch.adaptive(
+              value: isDark,
+              activeColor: const Color(0xFF6366F1),
+              onChanged: (val) => context.read<ThemeCubit>().toggleTheme(val),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSecurityOption(
+    String title,
+    String subtitle,
+    IconData icon,
+    VoidCallback onTap,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: ListTile(
+        onTap: onTap,
+        leading: Icon(icon, color: const Color(0xFF6366F1)),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(
+          subtitle,
+          style: const TextStyle(fontSize: 11, color: Colors.grey),
+        ),
+        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+      ),
+    );
+  }
+
+  Widget _infoCard(String title, String value, IconData icon) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.grey.shade400, size: 20),
+          const SizedBox(width: 15),
+          Text(title, style: const TextStyle(color: Colors.grey)),
+          const Spacer(),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return Container(
+      width: double.infinity,
+      height: 60,
+      decoration: BoxDecoration(
+        gradient: meshGradient,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF6366F1).withValues(alpha: 0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: _saveAllData,
+        borderRadius: BorderRadius.circular(22),
+        child: const Center(
+          child: Text(
+            'Save & Cache Profile',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLogoutButton() {
+    return TextButton(
+      onPressed: () => _logout(context),
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.logout, color: Colors.red),
+          Text(
+            " Logout",
+            style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildModernAppBar() {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      centerTitle: true,
+      title: const Text(
+        'My Profile',
+        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 24),
+      ),
+    );
+  }
+
   Future<void> _logout(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('access_token');
-    await prefs.remove('refresh_token');
+    await prefs.clear();
     if (!mounted) return;
-    _showModernSnackBar(context, "Logged out successfully!", true);
-    await Future.delayed(const Duration(milliseconds: 600));
     MyNavigator.goTo(
       context,
       const LoginView(),
@@ -602,6 +554,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       SnackBar(
         content: Text(msg),
         backgroundColor: isSuccess ? Colors.green : Colors.red,
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }

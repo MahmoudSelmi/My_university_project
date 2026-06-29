@@ -10,7 +10,7 @@ class TeamsCubit extends Cubit<TeamsState> {
 
   TeamModel? teamModel;
   final String token =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZDI2ZGUwODYyMjlhMjhkNDcxYzNmYSIsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzc1NTYzODY2LCJleHAiOjE3ODQyMDM4NjZ9.dHj_MJxAvCd6D7OYqL3_ZBs2xWH0Sd1BdM3IniqIQs8";
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZmQxMDU2MjhhYTg0M2YwOGIwNDY1NiIsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzc4MzI2Njg3LCJleHAiOjE3ODY5NjY2ODd9.tCHZ9Z67KYHuSYPvDMlnTKRiw8fvAvXyUCZuVmUKYD0";
 
   void getMyTeam() async {
     emit(TeamsLoading());

@@ -8,6 +8,8 @@ abstract class AppToast {
     Color? textColor,
     SnackBarBehavior behavior = SnackBarBehavior.floating,
   }) {
+
+    
     final theme = Theme.of(context);
 
     ScaffoldMessenger.of(context).clearSnackBars();
@@ -15,7 +17,8 @@ abstract class AppToast {
       SnackBar(
         behavior: behavior,
         backgroundColor:
-            backgroundColor ?? theme.colorScheme.surface.withOpacity(0.98),
+            backgroundColor ??
+            theme.colorScheme.surface.withValues(alpha: 0.98),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         content: Text(
           message,
